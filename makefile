@@ -48,4 +48,4 @@ uninstall:
 	rm $(SHAREDLIB)
 
 clean:
-	rm -f *.o *.so *.so.* test/test[0-9]
+	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/*.o
