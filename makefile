@@ -13,7 +13,7 @@ LDFLAGS    = -L. -lbeanstalk
 CC         = gcc
 CPP        = g++
 
-all: $(T_ELVES) $(E_ELVES)
+all: $(E_ELVES)
 
 test: $(T_ELVES)
 	test/run-all

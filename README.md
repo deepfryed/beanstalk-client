@@ -10,6 +10,15 @@ This is a blocking version of [http://kr.github.com/beanstalkd/](beanstalkd) cli
 sudo make install
 ```
 
+## Testing
+
+The tests need [http://code.google.com/p/googletest/](google test) installed, the debian package is libgtest-dev.
+
+```
+sudo apt-get install libgtest-dev
+make test
+```
+
 ## Example
 
 ```C
@@ -46,11 +55,6 @@ int main() {
 }
 
 ```
-
-## Warning
-
-This is a weekend hack, the API might change drastically and some horrendous bugs may get fixed later. Use it at your own
-peril. Valgrid seems to be happy so far.
 
 ## License
 
