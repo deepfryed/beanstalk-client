@@ -2,6 +2,9 @@
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
+#define BS_MESSAGE_NO_BODY  0
+#define BS_MESSAGE_HAS_BODY 1
+
 const char *bs_status_verbose[] = {
     "Success",
     "Operation failed",
@@ -85,9 +88,12 @@ void bs_free_job(BSJ *job) {
     free(job);
 }
 
-BSM* bs_recv_message(int fd) {
+// optional polling
+int (*bs_poll)(int rw, int fd) = 0;
+
+BSM* bs_recv_message(int fd, int has_body) {
     char *token, *data;
-    ssize_t bytes, data_size, status_size, status_max = 1024;
+    ssize_t bytes, data_size, status_size, status_max = 1024, expect;
     BSM *message = (BSM*)calloc(1, sizeof(BSM));
     if (!message) return 0;
 
@@ -97,6 +103,8 @@ BSM* bs_recv_message(int fd) {
         return 0;
     }
 
+    // poll until ready to read
+    if (bs_poll) bs_poll(1, fd);
     if ((bytes = recv(fd, message->status, status_max - 1, 0)) < 0) {
         bs_free_message(message);
         return 0;
@@ -111,6 +119,14 @@ BSM* bs_recv_message(int fd) {
     *token        = 0;
     status_size   = token - message->status;
 
+    if (has_body) {
+        token  = rindex(message->status, ' ');
+        expect = token ? atol(token + 1) : 0;
+    }
+
+    if (!has_body || expect == 0)
+        return message;
+
     data_size     = 4096;
     message->data = (char*)malloc(data_size);
 
@@ -123,6 +139,12 @@ BSM* bs_recv_message(int fd) {
     memcpy(message->data, message->status + status_size + 2, message->size);
     data = message->data + message->size;
 
+    // already read the body along with status, all good.
+    if (expect < message->size)
+        return message;
+
+    // poll until ready to read.
+    if (bs_poll) bs_poll(1, fd);
     while ((bytes = recv(fd, data, data_size - message->size, MSG_DONTWAIT)) > 0) {
         if (bytes < data_size - message->size) {
             message->size += bytes;
@@ -138,13 +160,20 @@ BSM* bs_recv_message(int fd) {
         }
 
         data = message->data + message->size;
+
+        // doneski, we have read enough bytes.
+        if (message->size >= expect) break;
+        // poll until ready to read.
+        if (bs_poll && data ) bs_poll(1, fd);
     }
 
     return message;
 }
 
 size_t bs_send_message(int fd, char *message, size_t size) {
-    return send(fd, message, size, 0);
+    // poll until ready to write.
+    if (bs_poll) bs_poll(2, fd);
+    return send(fd, message, size, bs_poll ? MSG_DONTWAIT : 0);
 }
 
 #define BS_SEND(fd, command, size) {                        \
@@ -183,7 +212,7 @@ int bs_use(int fd, char *tube) {
     snprintf(command, 1024, "use %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_using);
     BS_RETURN_INVALID(message);
@@ -196,7 +225,7 @@ int bs_watch(int fd, char *tube) {
     snprintf(command, 1024, "watch %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_watching);
     BS_RETURN_INVALID(message);
@@ -209,7 +238,7 @@ int bs_ignore(int fd, char *tube) {
     snprintf(command, 1024, "ignore %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_watching);
     BS_RETURN_INVALID(message);
@@ -225,7 +254,7 @@ int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
     BS_SEND(fd, data, bytes);
     BS_SEND(fd, "\r\n", 2);
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
 
     if (BS_STATUS_IS(message->status, bs_resp_inserted)) {
@@ -253,7 +282,7 @@ int bs_delete(int fd, int job) {
     snprintf(command, 512, "delete %d\r\n", job);
     BS_SEND(fd, command, strlen(command));
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_deleted);
     BS_RETURN_FAIL_WHEN(message, bs_resp_not_found, BS_STATUS_NOT_FOUND);
@@ -265,7 +294,7 @@ int bs_reserve_job(int fd, char *command, BSJ **result) {
     BSM *message;
 
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_HAS_BODY);
     BS_CHECK_MESSAGE(message);
 
     if (BS_STATUS_IS(message->status, bs_resp_reserved)) {
@@ -307,7 +336,7 @@ int bs_release(int fd, int id, int priority, int delay) {
     snprintf(command, 512, "release %d %d %d\r\n", id, priority, delay);
     BS_SEND(fd, command, strlen(command));
 
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_released);
     BS_RETURN_FAIL_WHEN(message, bs_resp_buried,    BS_STATUS_BURIED);
@@ -321,7 +350,7 @@ int bs_bury(int fd, int id, int priority) {
 
     snprintf(command, 512, "bury %d %d\r\n", id, priority);
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_buried);
     BS_RETURN_FAIL_WHEN(message, bs_resp_not_found, BS_STATUS_NOT_FOUND);
@@ -334,7 +363,7 @@ int bs_touch(int fd, int id) {
 
     snprintf(command, 512, "touch %d\r\n", id);
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_touched);
     BS_RETURN_FAIL_WHEN(message, bs_resp_not_found, BS_STATUS_NOT_FOUND);
@@ -346,7 +375,7 @@ int bs_peek_job(int fd, char *command, BSJ **result) {
     BSM *message;
 
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_HAS_BODY);
     BS_CHECK_MESSAGE(message);
 
     if (BS_STATUS_IS(message->status, bs_resp_found)) {
@@ -392,7 +421,7 @@ int bs_kick(int fd, int bound) {
 
     snprintf(command, 512, "kick %d\r\n", bound);
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
     BS_RETURN_OK_WHEN(message, bs_resp_kicked);
     BS_RETURN_INVALID(message);
@@ -403,7 +432,7 @@ int bs_list_tube_used(int fd, char **tube) {
     char command[64];
     snprintf(command, 64, "list-tube-used\r\n");
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     if (BS_STATUS_IS(message->status, bs_resp_using)) {
         *tube = (char*)calloc(1, strlen(message->status) - strlen(bs_resp_using) + 1);
         strcpy(*tube, message->status + strlen(bs_resp_using) + 1);
@@ -418,7 +447,7 @@ int bs_get_info(int fd, char *command, char **yaml) {
     size_t size;
 
     BS_SEND(fd, command, strlen(command));
-    message = bs_recv_message(fd);
+    message = bs_recv_message(fd, BS_MESSAGE_HAS_BODY);
     BS_CHECK_MESSAGE(message);
     if (BS_STATUS_IS(message->status, bs_resp_ok)) {
         sscanf(message->status + strlen(bs_resp_ok) + 1, "%lu", &size);
