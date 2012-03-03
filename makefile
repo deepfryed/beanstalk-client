@@ -1,33 +1,29 @@
-E_SOURCES := $(wildcard examples/*.c)
-E_OBJECTS := $(E_SOURCES:%.c=%.o)
-E_ELVES   := $(E_SOURCES:%.c=%)
-
-T_SOURCES := $(wildcard test/*.cc)
-T_OBJECTS := $(T_SOURCES:%.cc=%.o)
-T_ELVES   := $(T_SOURCES:%.cc=%)
+SOURCES1  := $(wildcard examples/*.c)
+SOURCES2  := $(wildcard test/*.cc)
+EXAMPLES  := $(SOURCES1:%.c=%)
+TESTS     := $(SOURCES2:%.cc=%)
 
 SHAREDLIB  = /usr/lib/libbeanstalk.so.1.0.0
 CFLAGS     = -Wall -g -I.
 LDFLAGS    = -L. -lbeanstalk
-
 CC         = gcc
 CPP        = g++
 
-all: $(E_ELVES)
+all: $(EXAMPLES)
 
-test: $(T_ELVES)
+test: $(TESTS)
 	test/run-all
 
-$(T_ELVES): $(T_OBJECTS) libbeanstalk.so
+$(TESTS): test/%:test/%.o libbeanstalk.so
 	$(CPP) -o $@ $< $(LDFLAGS) -lgtest -lpthread
 
-$(T_OBJECTS): $(T_SOURCES)
+test/%.o: test/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
 
-$(E_ELVES): $(E_OBJECTS) libbeanstalk.so
+$(EXAMPLES): examples/%:examples/%.o libbeanstalk.so
 	$(CC) -o $@ $< $(LDFLAGS)
 
-$(E_OBJECTS): $(E_SOURCES)
+examples/%.o: examples/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 libbeanstalk.so: beanstalk.o
@@ -35,7 +31,6 @@ libbeanstalk.so: beanstalk.o
 
 beanstalk.o: beanstalk.c makefile
 	gcc -fPIC -c -o beanstalk.o beanstalk.c
-
 
 install: libbeanstalk.so
 	cp beanstalk.h /usr/include
