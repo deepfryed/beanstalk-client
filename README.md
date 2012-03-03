@@ -1,3 +1,18 @@
+beanstalkd C client
+===================
+
+This is a blocking version of [http://kr.github.com/beanstalkd/](beanstalkd) client.
+
+
+## Install
+
+```
+sudo make install
+```
+
+## Example
+
+```C
 #include "beanstalk.h"
 #include <stdio.h>
 #include <assert.h>
@@ -12,6 +27,7 @@ int main() {
     assert(bs_ignore(socket, "default") == BS_STATUS_OK);
 
     id = bs_put(socket, 0, 0, 60, "hello world", 11);
+
     assert(id > 0);
     printf("put job id: %d\n", id);
 
@@ -22,33 +38,20 @@ int main() {
     write(fileno(stderr), job->data, job->size);
     write(fileno(stderr), "\r\n", 2);
 
-    /*
-    printf("release job id: %d\n", job->id);
-    assert(bs_release(socket, job->id, 0, 1) == BS_STATUS_OK);
-
-    sleep(2);
-    */
-
     printf("delete job id: %d\n", job->id);
     assert(bs_delete(socket, job->id) == BS_STATUS_OK);
     bs_free_job(job);
 
-    assert(bs_peek_ready(socket, &job) == BS_STATUS_OK);
-    printf("peek job id: %d\n", job->id);
-    bs_free_job(job);
-
-    char *yaml;
-    assert(bs_list_tubes(socket, &yaml) == BS_STATUS_OK);
-    printf("tubes:\n%s\n", yaml);
-    free(yaml);
-    assert(bs_list_tubes_watched(socket, &yaml) == BS_STATUS_OK);
-    printf("tubes-watched:\n%s\n", yaml);
-    free(yaml);
-    assert(bs_list_tube_used(socket, &yaml) == BS_STATUS_OK);
-    printf("tube-used: %s\n", yaml);
-    free(yaml);
-    assert(bs_stats(socket, &yaml) == BS_STATUS_OK);
-    printf("stats:\n%s\n", yaml);
-    free(yaml);
     bs_disconnect(socket);
 }
+
+```
+
+## Warning
+
+This is a weekend hack, the API might change drastically and some horrendous bugs may get fixed later. Use it at your own
+peril. Valgrid seems to be happy so far.
+
+## License
+
+[Creative Commons Attribution - CC BY](http://creativecommons.org/licenses/by/3.0)
