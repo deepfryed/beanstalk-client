@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -33,25 +35,29 @@ typedef struct bs_job {
     size_t size;
 } BSJ;
 
+// returns a descriptive text of the error code.
 const char* bs_status_text(int code);
-
-int bs_connect(char *host, int port);
-int bs_disconnect(int fd);
 
 void bs_free_message(BSM* m);
 void bs_free_job(BSJ *job);
 
+// returns socket descriptor or BS_STATUS_FAIL
+int bs_connect(char *host, int port);
+// returns job id or one of the negative failure codes.
+int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
+
+// rest return BS_STATUS_OK or one of the failure codes.
+int bs_disconnect(int fd);
 int bs_use(int fd, char *tube);
 int bs_watch(int fd, char *tube);
 int bs_ignore(int fd, char *tube);
-int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
 int bs_delete(int fd, int job);
-int bs_reserve(int fd, BSJ **result);
-int bs_reserve_with_timeout(int fd, int ttl, BSJ **result);
+int bs_reserve(int fd, BSJ **job);
+int bs_reserve_with_timeout(int fd, int ttl, BSJ **job);
 int bs_release(int fd, int id, int priority, int delay);
 int bs_bury(int fd, int id, int priority);
 int bs_touch(int fd, int id);
-int bs_peek_job(int fd, char *command, BSJ **result);
+int bs_peek_job(int fd, char *command, BSJ **job);
 int bs_peek(int fd, int id, BSJ **job);
 int bs_peek_ready(int fd, BSJ **job);
 int bs_peek_delayed(int fd, BSJ **job);
