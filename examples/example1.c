@@ -22,19 +22,14 @@ int main() {
     write(fileno(stderr), job->data, job->size);
     write(fileno(stderr), "\r\n", 2);
 
-    /*
     printf("release job id: %d\n", job->id);
-    assert(bs_release(socket, job->id, 0, 1) == BS_STATUS_OK);
-
-    sleep(2);
-    */
-
-    printf("delete job id: %d\n", job->id);
-    assert(bs_delete(socket, job->id) == BS_STATUS_OK);
-    bs_free_job(job);
+    assert(bs_release(socket, job->id, 0, 0) == BS_STATUS_OK);
 
     assert(bs_peek_ready(socket, &job) == BS_STATUS_OK);
     printf("peek job id: %d\n", job->id);
+
+    printf("delete job id: %d\n", job->id);
+    assert(bs_delete(socket, job->id) == BS_STATUS_OK);
     bs_free_job(job);
 
     char *yaml;
@@ -51,4 +46,5 @@ int main() {
     printf("stats:\n%s\n", yaml);
     free(yaml);
     bs_disconnect(socket);
+    exit(0);
 }

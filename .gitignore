@@ -1,3 +1,7 @@
-test
 *.o
 *.so
+examples/*
+!examples/*.c
+test/*
+!test/run-all
+!test/*.cc

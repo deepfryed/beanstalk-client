@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for elf in $(/bin/ls -1 test/test*); do
+  if [ -x $elf ]; then
+    $elf
+  fi
+done
