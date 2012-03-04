@@ -30,7 +30,7 @@ libbeanstalk.so: beanstalk.o
 	gcc -shared -o libbeanstalk.so beanstalk.o
 
 beanstalk.o: beanstalk.c makefile
-	gcc -fPIC -c -o beanstalk.o beanstalk.c
+	gcc $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
 
 install: libbeanstalk.so
 	cp beanstalk.h /usr/include

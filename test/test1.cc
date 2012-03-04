@@ -10,7 +10,7 @@ int handle;
 TEST(Connection, Connect) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
     EXPECT_GT(handle, 0);
-    bs_disconnect(handle);
+    EXPECT_EQ(bs_disconnect(handle), BS_STATUS_OK);
     handle = bs_connect((char*)"127.0.0.1", 1);
     EXPECT_LT(handle, 0);
 }

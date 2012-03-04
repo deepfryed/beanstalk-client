@@ -5,6 +5,10 @@
 #define BS_MESSAGE_NO_BODY  0
 #define BS_MESSAGE_HAS_BODY 1
 
+#ifndef BS_READ_CHUNK_SIZE
+#define BS_READ_CHUNK_SIZE  4096
+#endif
+
 const char *bs_status_verbose[] = {
     "Success",
     "Operation failed",
@@ -91,9 +95,9 @@ void bs_free_job(BSJ *job) {
 // optional polling
 int (*bs_poll)(int rw, int fd) = 0;
 
-BSM* bs_recv_message(int fd, int has_body) {
+BSM* bs_recv_message(int fd, int expect_data) {
     char *token, *data;
-    ssize_t bytes, data_size, status_size, status_max = 1024, expect;
+    ssize_t bytes, data_size, status_size, status_max = 512, expect_data_bytes = 0;
     BSM *message = (BSM*)calloc(1, sizeof(BSM));
     if (!message) return 0;
 
@@ -119,39 +123,39 @@ BSM* bs_recv_message(int fd, int has_body) {
     *token        = 0;
     status_size   = token - message->status;
 
-    if (has_body) {
+    if (expect_data) {
         token  = rindex(message->status, ' ');
-        expect = token ? atol(token + 1) : 0;
+        expect_data_bytes = token ? atol(token + 1) : 0;
     }
 
-    if (!has_body || expect == 0)
+    if (!expect_data || expect_data_bytes == 0)
         return message;
 
-    data_size     = 4096;
-    message->data = (char*)malloc(data_size);
+    message->size = bytes - status_size - 2;
+    data_size     = message->size > BS_READ_CHUNK_SIZE ? message->size + BS_READ_CHUNK_SIZE : BS_READ_CHUNK_SIZE;
 
+    message->data = (char*)malloc(data_size);
     if (!message->data) {
         bs_free_message(message);
         return 0;
     }
 
-    message->size = bytes - status_size - 2;
     memcpy(message->data, message->status + status_size + 2, message->size);
     data = message->data + message->size;
 
     // already read the body along with status, all good.
-    if (expect < message->size)
+    if (expect_data_bytes < message->size)
         return message;
 
     // poll until ready to read.
     if (bs_poll) bs_poll(1, fd);
-    while ((bytes = recv(fd, data, data_size - message->size, MSG_DONTWAIT)) > 0) {
+    while ((bytes = recv(fd, data, data_size - message->size, 0)) > 0) {
         if (bytes < data_size - message->size) {
             message->size += bytes;
             return message;
         }
 
-        data_size      += 4096;
+        data_size      += BS_READ_CHUNK_SIZE;
         message->size  += bytes;
         message->data   = (char*)realloc(message->data, data_size);
         if (!message->data) {
@@ -162,7 +166,7 @@ BSM* bs_recv_message(int fd, int has_body) {
         data = message->data + message->size;
 
         // doneski, we have read enough bytes.
-        if (message->size >= expect) break;
+        if (message->size >= expect_data_bytes) break;
         // poll until ready to read.
         if (bs_poll && data ) bs_poll(1, fd);
     }

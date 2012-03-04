@@ -4,6 +4,7 @@
 
 int main() {
     BSJ *job;
+    char *yaml;
     int id, socket = bs_connect("127.0.0.1", 11300);
 
     assert(socket != BS_STATUS_FAIL);
@@ -25,6 +26,7 @@ int main() {
     printf("release job id: %d\n", job->id);
     assert(bs_release(socket, job->id, 0, 0) == BS_STATUS_OK);
 
+    bs_free_job(job);
     assert(bs_peek_ready(socket, &job) == BS_STATUS_OK);
     printf("peek job id: %d\n", job->id);
 
@@ -32,7 +34,6 @@ int main() {
     assert(bs_delete(socket, job->id) == BS_STATUS_OK);
     bs_free_job(job);
 
-    char *yaml;
     assert(bs_list_tubes(socket, &yaml) == BS_STATUS_OK);
     printf("tubes:\n%s\n", yaml);
     free(yaml);
