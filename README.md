@@ -1,5 +1,5 @@
-beanstalkd C client
-===================
+beanstalkd client
+=================
 
 C [beanstalkd](http://kr.github.com/beanstalkd) client that is blocking by default.
 
