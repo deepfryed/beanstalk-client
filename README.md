@@ -1,7 +1,7 @@
 beanstalkd C client
 ===================
 
-C [http://kr.github.com/beanstalkd/](beanstalkd) client that is blocking by default.
+C [beanstalkd](http://kr.github.com/beanstalkd) client that is blocking by default.
 
 
 ## Install
@@ -12,7 +12,7 @@ sudo make install
 
 ## Testing
 
-The tests need [http://code.google.com/p/googletest/](google test) installed, the debian package is libgtest-dev.
+The tests need [google test](http://code.google.com/p/googletest) installed (libgtest-dev on debian based distros).
 
 ```
 sudo apt-get install libgtest-dev
