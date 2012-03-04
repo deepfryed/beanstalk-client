@@ -39,7 +39,11 @@ typedef struct bs_job {
 // optional polling call, returns 1 if the socket is ready of the rw operation specified.
 // rw: 1 => read, 2 => write, 3 => read/write
 // fd: file descriptor of the socket
-extern int (*bs_poll)(int rw, int fd);
+typedef int (*bs_poll_function)(int rw, int fd);
+
+// polling setup
+void bs_start_polling(bs_poll_function f);
+void bs_reset_polling(void);
 
 // returns a descriptive text of the error code.
 const char* bs_status_text(int code);

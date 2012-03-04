@@ -93,7 +93,15 @@ void bs_free_job(BSJ *job) {
 }
 
 // optional polling
-int (*bs_poll)(int rw, int fd) = 0;
+bs_poll_function bs_poll = 0;
+
+void bs_start_polling(bs_poll_function f) {
+    bs_poll = f;
+}
+
+void bs_reset_polling() {
+    bs_poll = 0;
+}
 
 BSM* bs_recv_message(int fd, int expect_data) {
     char *token, *data;

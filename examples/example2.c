@@ -33,7 +33,7 @@ int main() {
     printf("put job id: %d\n", id);
 
     // poll read & writes from now on.
-    bs_poll = select_poll;
+    bs_start_polling(select_poll);
     fcntl(handle, F_SETFL, O_NONBLOCK);
 
     assert(bs_reserve_with_timeout(handle, 2, &job) == BS_STATUS_OK);
@@ -43,6 +43,8 @@ int main() {
     write(fileno(stderr), job->data, job->size);
     write(fileno(stderr), "\r\n", 2);
 
+    bs_reset_polling();
+    fcntl(handle, F_SETFL, fcntl(handle, F_GETFL) ^ O_NONBLOCK);
     printf("delete job id: %d\n", job->id);
     assert(bs_delete(handle, job->id) == BS_STATUS_OK);
     bs_free_job(job);

@@ -115,10 +115,10 @@ TEST(JOB, LARGE_CHUNK) {
 TEST(POLL, SELECT) {
     BSJ *job;
 
-    bs_poll = select_poll;
-    handle  = bs_connect((char*)"127.0.0.1", 11300);
+    handle = bs_connect((char*)"127.0.0.1", 11300);
 
     EXPECT_GT(handle, 0);
+    bs_start_polling(select_poll);
     fcntl(handle, F_SETFL, O_NONBLOCK);
     EXPECT_EQ(bs_use(handle,   (char*)"test"), BS_STATUS_OK);
     EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK);
