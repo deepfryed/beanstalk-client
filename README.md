@@ -1,7 +1,7 @@
 beanstalkd C client
 ===================
 
-This is a blocking version of [http://kr.github.com/beanstalkd/](beanstalkd) client.
+C [http://kr.github.com/beanstalkd/](beanstalkd) client that is blocking by default.
 
 
 ## Install
