@@ -6,8 +6,8 @@ CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
 
 VERSION      = 1.0.0
-CSHAREDLIB   = /usr/lib/libbeanstalk.so.$(VERSION)
-CPPSHAREDLIB = /usr/lib/libbeanstalkcpp.so.$(VERSION)
+CSHAREDLIB   = libbeanstalk.so
+CPPSHAREDLIB = libbeanstalkcpp.so
 CFLAGS       = -Wall -g -I.
 CLDFLAGS     = -L. -lbeanstalk
 CPPLDFLAGS   = -L. -lbeanstalkcpp
@@ -37,30 +37,33 @@ $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o libbeanstalkcpp.so
 examples/cpp/%.o: examples/cpp/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
 
-libbeanstalk.so: beanstalk.o
-	$(CC) -shared -o libbeanstalk.so beanstalk.o
+$(CSHAREDLIB): beanstalk.o
+	$(CC) -shared -o $(CSHAREDLIB) beanstalk.o
 
 beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
 
-libbeanstalkcpp.so: beanstalkcpp.o beanstalk.o
-	$(CPP) -shared -o libbeanstalkcpp.so beanstalkcpp.o beanstalk.o
+$(CPPSHAREDLIB): beanstalkcpp.o beanstalk.o
+	$(CPP) -shared -o $(CPPSHAREDLIB) beanstalkcpp.o beanstalk.o
 
 beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
-install: libbeanstalk.so
-	cp beanstalk.h* /usr/include
-	cp libbeanstalk.so $(CSHAREDLIB)
-	ln -sfT $(CSHAREDLIB) /usr/lib/libbeanstalk.so.1
-	ln -sfT $(CSHAREDLIB) /usr/lib/libbeanstalk.so
-	cp libbeanstalkcpp.so $(CPPSHAREDLIB)
-	ln -sfT $(CPPSHAREDLIB) /usr/lib/libbeanstalkcpp.so.1
-	ln -sfT $(CPPSHAREDLIB) /usr/lib/libbeanstalkcpp.so
+install: $(CSHAREDLIB) $(CPPSHAREDLIB)
+	cp beanstalk.h /usr/include
+	cp beanstalk.hpp /usr/include
+	cp $(CSHAREDLIB) /usr/lib/$(CSHAREDLIB).$(VERSION)
+	ln -sfT /usr/lib/$(CSHAREDLIB).$(VERSION) /usr/lib/$(CSHAREDLIB).1
+	ln -sfT /usr/lib/$(CSHAREDLIB).$(VERSION) /usr/lib/$(CSHAREDLIB)
+	cp $(CPPSHAREDLIB) /usr/lib/$(CPPSHAREDLIB).$(VERSION)
+	ln -sfT /usr/lib/$(CPPSHAREDLIB).$(VERSION) /usr/lib/$(CPPSHAREDLIB).1
+	ln -sfT /usr/lib/$(CPPSHAREDLIB).$(VERSION) /usr/lib/$(CPPSHAREDLIB)
 
 uninstall:
-	rm /usr/include/beanstalk.h
-	rm $(CSHAREDLIB)
+	rm -f /usr/include/beanstalk.h
+	rm -f /usr/include/beanstalk.hpp
+	rm -f /usr/lib/$(CSHAREDLIB)*
+	rm -f /usr/lib/$(CPPSHAREDLIB)*
 
 clean:
 	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/**/*.o examples/**/example?
