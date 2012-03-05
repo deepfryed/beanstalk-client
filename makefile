@@ -44,7 +44,7 @@ beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
 
 libbeanstalkcpp.so: beanstalkcpp.o beanstalk.o
-	$(CPP) -shared -o libbeanstalkcpp.so beanstalkcpp.o beanstalk.o -L. -lbeanstalk
+	$(CPP) -shared -o libbeanstalkcpp.so beanstalkcpp.o beanstalk.o
 
 beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
