@@ -60,4 +60,4 @@ uninstall:
 	rm $(CSHAREDLIB)
 
 clean:
-	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/*.o
+	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/**/*.o examples/**/example?
