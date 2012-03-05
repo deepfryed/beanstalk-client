@@ -1,5 +1,7 @@
 #include "beanstalk.hpp"
 #include <stdexcept>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -32,6 +34,32 @@ namespace Beanstalk {
     int Job::id() {
         return _id;
     }
+
+    /* start helpers */
+
+    void parsedict(stringstream &stream, info_hash_t &dict) {
+        string key, value;
+        while(true) {
+            stream >> key;
+            if (stream.eof()) break;
+            if (key[0] == '-') continue;
+            stream >> value;
+            key.erase(--key.end());
+            dict[key] = value;
+        }
+    }
+
+    void parselist(stringstream &stream, info_list_t &list) {
+        string value;
+        while(true) {
+            stream >> value;
+            if (stream.eof()) break;
+            if (value[0] == '-') continue;
+            list.push_back(value);
+        }
+    }
+
+    /* end helpers */
 
     Client::~Client() {
         bs_disconnect(handle);
@@ -137,5 +165,84 @@ namespace Beanstalk {
 
     bool Client::kick(int bound) {
         return bs_kick(handle, bound) == BS_STATUS_OK;
+    }
+
+    string Client::list_tube_used() {
+        char *name;
+        string tube;
+        if (bs_list_tube_used(handle, &name) == BS_STATUS_OK) {
+            tube.assign(name);
+            free(name);
+        }
+
+        return tube;
+    }
+
+    info_list_t Client::list_tubes() {
+        char *yaml, *data;
+        info_list_t tubes;
+        if (bs_list_tubes(handle, &yaml) == BS_STATUS_OK) {
+            if ((data = strstr(yaml, "---"))) {
+                stringstream stream(data);
+                parselist(stream, tubes);
+            }
+            free(yaml);
+        }
+        return tubes;
+    }
+
+    info_list_t Client::list_tubes_watched() {
+        char *yaml, *data;
+        info_list_t tubes;
+        if (bs_list_tubes_watched(handle, &yaml) == BS_STATUS_OK) {
+            if ((data = strstr(yaml, "---"))) {
+                stringstream stream(data);
+                parselist(stream, tubes);
+            }
+            free(yaml);
+        }
+        return tubes;
+    }
+
+    info_hash_t Client::stats() {
+        char *yaml, *data;
+        info_hash_t stats;
+        string key, value;
+        if (bs_stats(handle, &yaml) == BS_STATUS_OK) {
+            if ((data = strstr(yaml, "---"))) {
+                stringstream stream(data);
+                parsedict(stream, stats);
+            }
+            free(yaml);
+        }
+        return stats;
+    }
+
+    info_hash_t Client::stats_job(int id) {
+        char *yaml, *data;
+        info_hash_t stats;
+        string key, value;
+        if (bs_stats_job(handle, id, &yaml) == BS_STATUS_OK) {
+            if ((data = strstr(yaml, "---"))) {
+                stringstream stream(data);
+                parsedict(stream, stats);
+            }
+            free(yaml);
+        }
+        return stats;
+    }
+
+    info_hash_t Client::stats_tube(string name) {
+        char *yaml, *data;
+        info_hash_t stats;
+        string key, value;
+        if (bs_stats_tube(handle, (char*)name.c_str(), &yaml) == BS_STATUS_OK) {
+            if ((data = strstr(yaml, "---"))) {
+                stringstream stream(data);
+                parsedict(stream, stats);
+            }
+            free(yaml);
+        }
+        return stats;
     }
 }

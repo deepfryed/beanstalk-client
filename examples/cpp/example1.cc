@@ -10,6 +10,7 @@ int main() {
     Client client("127.0.0.1", 11300);
     assert(client.use("test"));
     assert(client.watch("test"));
+    assert(client.ignore("default"));
 
     int id = client.put("hello");
     assert(id > 0);
@@ -28,6 +29,9 @@ int main() {
 
     assert(client.del(job.id()));
     cout << "deleted job id: " << job.id() << endl;
+
+    info_list_t tubes = client.list_tubes();
+    info_hash_t stats = client.stats();
 
     // failed connnection
     try {

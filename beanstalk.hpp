@@ -2,10 +2,13 @@
 
 #include "beanstalk.h"
 #include <string>
-
-// TODO: stats & list commands.
+#include <vector>
+#include <map>
 
 namespace Beanstalk {
+    typedef std::vector<std::string> info_list_t;
+    typedef std::map<std::string, std::string> info_hash_t;
+
     class Job {
         public:
             int id();
@@ -39,6 +42,12 @@ namespace Beanstalk {
             bool peek_delayed(Job &);
             bool peek_buried(Job &);
             bool kick(int bound);
+            std::string list_tube_used();
+            info_list_t list_tubes();
+            info_list_t list_tubes_watched();
+            info_hash_t stats();
+            info_hash_t stats_job(int);
+            info_hash_t stats_tube(std::string);
         protected:
             int handle;
     };
