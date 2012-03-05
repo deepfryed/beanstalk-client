@@ -50,10 +50,13 @@ beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: libbeanstalk.so
-	cp beanstalk.h /usr/include
+	cp beanstalk.h* /usr/include
 	cp libbeanstalk.so $(CSHAREDLIB)
-	ln -s $(CSHAREDLIB) /usr/lib/libbeanstalk.so.1
-	ln -s $(CSHAREDLIB) /usr/lib/libbeanstalk.so
+	ln -sfT $(CSHAREDLIB) /usr/lib/libbeanstalk.so.1
+	ln -sfT $(CSHAREDLIB) /usr/lib/libbeanstalk.so
+	cp libbeanstalkcpp.so $(CPPSHAREDLIB)
+	ln -sfT $(CPPSHAREDLIB) /usr/lib/libbeanstalkcpp.so.1
+	ln -sfT $(CPPSHAREDLIB) /usr/lib/libbeanstalkcpp.so
 
 uninstall:
 	rm /usr/include/beanstalk.h
