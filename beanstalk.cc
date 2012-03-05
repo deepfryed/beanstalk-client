@@ -40,7 +40,7 @@ namespace Beanstalk {
     Client::Client(string host, int port) {
         handle = bs_connect((char*)host.c_str(), port);
         if (handle < 0)
-            throw new runtime_error("unable to connect to beanstalkd at " + host);
+            throw runtime_error("unable to connect to beanstalkd at " + host);
     }
 
     bool Client::use(string tube) {

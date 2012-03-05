@@ -1,6 +1,7 @@
 #include "beanstalk.hpp"
 #include <iostream>
 #include <assert.h>
+#include <stdexcept>
 
 using namespace std;
 using namespace Beanstalk;
@@ -27,4 +28,13 @@ int main() {
 
     assert(client.del(job.id()));
     cout << "deleted job id: " << job.id() << endl;
+
+    // failed connnection
+    try {
+        cout << "testing connection error" << endl;
+        Client client("123.456.789.0", 1234);
+    }
+    catch (runtime_error &e) {
+        cerr << e.what() << endl;
+    }
 }
