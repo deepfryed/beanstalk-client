@@ -1,46 +1,63 @@
-SOURCES1  := $(wildcard examples/*.c)
-SOURCES2  := $(wildcard test/*.cc)
-EXAMPLES  := $(SOURCES1:%.c=%)
-TESTS     := $(SOURCES2:%.cc=%)
+SOURCES1    := $(wildcard test/*.cc)
+SOURCES2    := $(wildcard examples/c/*.c)
+SOURCES3    := $(wildcard examples/cpp/*.cc)
+TESTS       := $(SOURCES1:%.cc=%)
+CEXAMPLES   := $(SOURCES2:%.c=%)
+CPPEXAMPLES := $(SOURCES3:%.cc=%)
 
-SHAREDLIB  = /usr/lib/libbeanstalk.so.1.0.0
-CFLAGS     = -Wall -g -I.
-LDFLAGS    = -L. -lbeanstalk
-CC         = gcc
-CPP        = g++
+VERSION      = 1.0.0
+CSHAREDLIB   = /usr/lib/libbeanstalk.so.$(VERSION)
+CPPSHAREDLIB = /usr/lib/libbeanstalkcpp.so.$(VERSION)
+CFLAGS       = -Wall -g -I.
+CLDFLAGS     = -L. -lbeanstalk
+CPPLDFLAGS   = -L. -lbeanstalkcpp
+CC           = gcc
+CPP          = g++
 
-all: $(EXAMPLES)
+all: $(CEXAMPLES) $(CPPEXAMPLES)
 
 test: $(TESTS)
 	test/run-all
 
 $(TESTS): test/%:test/%.o libbeanstalk.so
-	$(CPP) -o $@ $< $(LDFLAGS) -lgtest -lpthread
+	$(CPP) -o $@ $< $(CLDFLAGS) -lgtest -lpthread
 
 test/%.o: test/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
 
-$(EXAMPLES): examples/%:examples/%.o libbeanstalk.so
-	$(CC) -o $@ $< $(LDFLAGS)
+$(CEXAMPLES): examples/c/%:examples/c/%.o libbeanstalk.so
+	$(CC) -o $@ $< $(CLDFLAGS)
 
-examples/%.o: examples/%.c
+examples/c/%.o: examples/c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-libbeanstalk.so: beanstalk.o
-	gcc -shared -o libbeanstalk.so beanstalk.o
+$(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o libbeanstalkcpp.so
+	$(CPP) -o $@ $< $(CPPLDFLAGS)
 
-beanstalk.o: beanstalk.c makefile
-	gcc $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
+examples/cpp/%.o: examples/cpp/%.cc
+	$(CPP) $(CFLAGS) -c -o $@ $<
+
+libbeanstalk.so: beanstalk.o
+	$(CC) -shared -o libbeanstalk.so beanstalk.o
+
+beanstalk.o: beanstalk.c beanstalk.h makefile
+	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
+
+libbeanstalkcpp.so: beanstalkcpp.o beanstalk.o
+	$(CPP) -shared -o libbeanstalkcpp.so beanstalkcpp.o beanstalk.o -L. -lbeanstalk
+
+beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
+	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: libbeanstalk.so
 	cp beanstalk.h /usr/include
-	cp libbeanstalk.so $(SHAREDLIB)
-	ln -s $(SHAREDLIB) /usr/lib/libbeanstalk.so.1
-	ln -s $(SHAREDLIB) /usr/lib/libbeanstalk.so
+	cp libbeanstalk.so $(CSHAREDLIB)
+	ln -s $(CSHAREDLIB) /usr/lib/libbeanstalk.so.1
+	ln -s $(CSHAREDLIB) /usr/lib/libbeanstalk.so
 
 uninstall:
 	rm /usr/include/beanstalk.h
-	rm $(SHAREDLIB)
+	rm $(CSHAREDLIB)
 
 clean:
 	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/*.o

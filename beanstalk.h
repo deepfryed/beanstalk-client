@@ -67,7 +67,6 @@ int bs_reserve_with_timeout(int fd, int ttl, BSJ **job);
 int bs_release(int fd, int id, int priority, int delay);
 int bs_bury(int fd, int id, int priority);
 int bs_touch(int fd, int id);
-int bs_peek_job(int fd, char *command, BSJ **job);
 int bs_peek(int fd, int id, BSJ **job);
 int bs_peek_ready(int fd, BSJ **job);
 int bs_peek_delayed(int fd, BSJ **job);
