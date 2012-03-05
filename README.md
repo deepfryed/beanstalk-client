@@ -19,7 +19,7 @@ sudo apt-get install libgtest-dev
 make test
 ```
 
-## Example
+## C Example
 
 ```C
 #include "beanstalk.h"
@@ -55,6 +55,8 @@ int main() {
 }
 
 ```
+
+## C++ Example
 
 ```C++
 #include "beanstalk.hpp"
