@@ -1,6 +1,6 @@
 *.o
 *.so
-examples/*/**
+examples/**/*
 !examples/c/*.c
 !examples/cpp/*.cc
 test/*
