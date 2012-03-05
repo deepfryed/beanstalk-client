@@ -41,43 +41,60 @@ typedef struct bs_job {
 // fd: file descriptor of the socket
 typedef int (*bs_poll_function)(int rw, int fd);
 
+/*  Handle DSO symbol visibility - Stolen from zmq.h */
+#if defined _WIN32
+#   if defined DLL_EXPORT
+#       define BSC_EXPORT __declspec(dllexport)
+#   else
+#       define BSC_EXPORT __declspec(dllimport)
+#   endif
+#else
+#   if defined __SUNPRO_C  || defined __SUNPRO_CC
+#       define BSC_EXPORT __global
+#   elif (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
+#       define BSC_EXPORT __attribute__ ((visibility("default")))
+#   else
+#       define BSC_EXPORT
+#   endif
+#endif
+
 // polling setup
-void bs_start_polling(bs_poll_function f);
-void bs_reset_polling(void);
+BSC_EXPORT void bs_start_polling(bs_poll_function f);
+BSC_EXPORT void bs_reset_polling(void);
 
 // returns a descriptive text of the error code.
-const char* bs_status_text(int code);
+BSC_EXPORT const char* bs_status_text(int code);
 
-void bs_free_message(BSM* m);
-void bs_free_job(BSJ *job);
+BSC_EXPORT void bs_free_message(BSM* m);
+BSC_EXPORT void bs_free_job(BSJ *job);
 
 // returns socket descriptor or BS_STATUS_FAIL
-int bs_connect(char *host, int port);
+BSC_EXPORT int bs_connect(char *host, int port);
 // returns job id or one of the negative failure codes.
-int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
+BSC_EXPORT int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
 
 // rest return BS_STATUS_OK or one of the failure codes.
-int bs_disconnect(int fd);
-int bs_use(int fd, char *tube);
-int bs_watch(int fd, char *tube);
-int bs_ignore(int fd, char *tube);
-int bs_delete(int fd, int job);
-int bs_reserve(int fd, BSJ **job);
-int bs_reserve_with_timeout(int fd, int ttl, BSJ **job);
-int bs_release(int fd, int id, int priority, int delay);
-int bs_bury(int fd, int id, int priority);
-int bs_touch(int fd, int id);
-int bs_peek(int fd, int id, BSJ **job);
-int bs_peek_ready(int fd, BSJ **job);
-int bs_peek_delayed(int fd, BSJ **job);
-int bs_peek_buried(int fd, BSJ **job);
-int bs_kick(int fd, int bound);
-int bs_list_tube_used(int fd, char **tube);
-int bs_list_tubes(int fd, char **yaml);
-int bs_list_tubes_watched(int fd, char **yaml);
-int bs_stats(int fd, char **yaml);
-int bs_stats_job(int fd, int id, char **yaml);
-int bs_stats_tube(int fd, char *tube, char **yaml);
+BSC_EXPORT int bs_disconnect(int fd);
+BSC_EXPORT int bs_use(int fd, char *tube);
+BSC_EXPORT int bs_watch(int fd, char *tube);
+BSC_EXPORT int bs_ignore(int fd, char *tube);
+BSC_EXPORT int bs_delete(int fd, int job);
+BSC_EXPORT int bs_reserve(int fd, BSJ **job);
+BSC_EXPORT int bs_reserve_with_timeout(int fd, int ttl, BSJ **job);
+BSC_EXPORT int bs_release(int fd, int id, int priority, int delay);
+BSC_EXPORT int bs_bury(int fd, int id, int priority);
+BSC_EXPORT int bs_touch(int fd, int id);
+BSC_EXPORT int bs_peek(int fd, int id, BSJ **job);
+BSC_EXPORT int bs_peek_ready(int fd, BSJ **job);
+BSC_EXPORT int bs_peek_delayed(int fd, BSJ **job);
+BSC_EXPORT int bs_peek_buried(int fd, BSJ **job);
+BSC_EXPORT int bs_kick(int fd, int bound);
+BSC_EXPORT int bs_list_tube_used(int fd, char **tube);
+BSC_EXPORT int bs_list_tubes(int fd, char **yaml);
+BSC_EXPORT int bs_list_tubes_watched(int fd, char **yaml);
+BSC_EXPORT int bs_stats(int fd, char **yaml);
+BSC_EXPORT int bs_stats_job(int fd, int id, char **yaml);
+BSC_EXPORT int bs_stats_tube(int fd, char *tube, char **yaml);
 
 #ifdef __cplusplus
     }
