@@ -70,18 +70,18 @@ namespace Beanstalk {
     }
 
     bool Client::reserve(Job &job) {
-        BSJ *reserved;
-        if (bs_reserve(handle, &reserved) == BS_STATUS_OK) {
-            job = reserved;
+        BSJ *bsj;
+        if (bs_reserve(handle, &bsj) == BS_STATUS_OK) {
+            job = bsj;
             return true;
         }
         return false;
     }
 
     bool Client::reserve(Job &job, int timeout) {
-        BSJ *reserved;
-        if (bs_reserve_with_timeout(handle, timeout, &reserved) == BS_STATUS_OK) {
-            job = reserved;
+        BSJ *bsj;
+        if (bs_reserve_with_timeout(handle, timeout, &bsj) == BS_STATUS_OK) {
+            job = bsj;
             return true;
         }
         return false;
@@ -99,24 +99,40 @@ namespace Beanstalk {
         return bs_touch(handle, id) == BS_STATUS_OK;
     }
 
-    BSJ* Client::peek(int id) {
-        BSJ *job;
-        return (bs_peek(handle, id, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::peek(Job &job, int id) {
+        BSJ *bsj;
+        if (bs_peek(handle, id, &bsj) == BS_STATUS_OK) {
+            job = bsj;
+            return true;
+        }
+        return false;
     }
 
-    BSJ* Client::peek_ready() {
-        BSJ *job;
-        return (bs_peek_ready(handle, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::peek_ready(Job &job) {
+        BSJ *bsj;
+        if (bs_peek_ready(handle, &bsj) == BS_STATUS_OK) {
+            job = bsj;
+            return true;
+        }
+        return false;
     }
 
-    BSJ* Client::peek_delayed() {
-        BSJ *job;
-        return (bs_peek_delayed(handle, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::peek_delayed(Job &job) {
+        BSJ *bsj;
+        if (bs_peek_delayed(handle, &bsj) == BS_STATUS_OK) {
+            job = bsj;
+            return true;
+        }
+        return false;
     }
 
-    BSJ* Client::peek_buried() {
-        BSJ *job;
-        return (bs_peek_buried(handle, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::peek_buried(Job &job) {
+        BSJ *bsj;
+        if (bs_peek_buried(handle, &bsj) == BS_STATUS_OK) {
+            job = bsj;
+            return true;
+        }
+        return false;
     }
 
     bool Client::kick(int bound) {

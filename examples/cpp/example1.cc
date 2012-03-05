@@ -15,9 +15,11 @@ int main() {
     cout << "put job id: " << id << endl;
 
     Job job;
+    assert(client.peek_ready(job) && job);
+    cout << "peek job id: " << job.id() << endl;
+
     assert(client.reserve(job) && job);
     assert(job.id() == id);
-
     cout << "reserved job id: "
          << job.id()
          << " with body {" << job.body() << "}"

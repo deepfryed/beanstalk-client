@@ -34,10 +34,10 @@ namespace Beanstalk {
             bool release(int id, int priority = 1, int delay = 0);
             bool bury(int id, int priority = 1);
             bool touch(int id);
-            BSJ* peek(int id);
-            BSJ* peek_ready();
-            BSJ* peek_delayed();
-            BSJ* peek_buried();
+            bool peek(Job &, int id);
+            bool peek_ready(Job &);
+            bool peek_delayed(Job &);
+            bool peek_buried(Job &);
             bool kick(int bound);
         protected:
             int handle;
