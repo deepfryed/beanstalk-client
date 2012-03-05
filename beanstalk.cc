@@ -5,6 +5,10 @@ using namespace std;
 
 namespace Beanstalk {
 
+    Job::Job() {
+        _id = 0;
+    }
+
     Job::Job(int id, char *data, size_t size) {
         _body.assign(data, size);
         _id = id;
@@ -19,10 +23,6 @@ namespace Beanstalk {
         else {
             _id = 0;
         }
-    }
-
-    bool Job::is_valid() {
-        return _id > 0;
     }
 
     string& Job::body() {
@@ -69,14 +69,22 @@ namespace Beanstalk {
         return bs_delete(handle, id) == BS_STATUS_OK;
     }
 
-    BSJ* Client::reserve() {
-        BSJ *job;
-        return (bs_reserve(handle, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::reserve(Job &job) {
+        BSJ *reserved;
+        if (bs_reserve(handle, &reserved) == BS_STATUS_OK) {
+            job = reserved;
+            return true;
+        }
+        return false;
     }
 
-    BSJ* Client::reserve(int timeout) {
-        BSJ *job;
-        return (bs_reserve_with_timeout(handle, timeout, &job) == BS_STATUS_OK ? job : 0);
+    bool Client::reserve(Job &job, int timeout) {
+        BSJ *reserved;
+        if (bs_reserve_with_timeout(handle, timeout, &reserved) == BS_STATUS_OK) {
+            job = reserved;
+            return true;
+        }
+        return false;
     }
 
     bool Client::release(int id, int priority, int delay) {

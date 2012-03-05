@@ -75,8 +75,8 @@ int main() {
     assert(id > 0);
     cout << "put job id: " << id << endl;
 
-    Job job = client.reserve();
-    assert(job.is_valid());
+    Job job;
+    assert(client.reserve(job) && job);
     assert(job.id() == id);
 
     cout << "reserved job id: "

@@ -12,7 +12,8 @@ namespace Beanstalk {
             std::string& body();
             Job(int, char*, size_t);
             Job(BSJ*);
-            bool is_valid();
+            Job();
+            operator bool() { return _id > 0; }
         protected:
             int _id;
             std::string _body;
@@ -28,8 +29,8 @@ namespace Beanstalk {
             int  put(std::string, int priority = 0, int delay = 0, int ttr = 60);
             int  put(char *data, size_t bytes, int priority = 0, int delay = 0, int ttr = 60);
             bool del(int id);
-            BSJ* reserve();
-            BSJ* reserve(int timeout);
+            bool reserve(Job &);
+            bool reserve(Job &, int timeout);
             bool release(int id, int priority = 1, int delay = 0);
             bool bury(int id, int priority = 1);
             bool touch(int id);
