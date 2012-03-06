@@ -1,4 +1,5 @@
 #include "beanstalk.h"
+#include "errno.h"
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -8,6 +9,8 @@
 #ifndef BS_READ_CHUNK_SIZE
 #define BS_READ_CHUNK_SIZE  4096
 #endif
+
+#define DATA_PENDING (errno == EAGAIN || errno == EWOULDBLOCK)
 
 const char *bs_status_verbose[] = {
     "Success",
@@ -155,9 +158,16 @@ BSM* bs_recv_message(int fd, int expect_data) {
     if (expect_data_bytes < message->size)
         return message;
 
-    // poll until ready to read.
-    if (bs_poll) bs_poll(1, fd);
-    while ((bytes = recv(fd, data, data_size - message->size, 0)) > 0) {
+    while (1) {
+        // poll until ready to read.
+        if (bs_poll) bs_poll(1, fd);
+        if ((bytes = recv(fd, data, data_size - message->size, 0)) < 0) {
+            if (bs_poll && DATA_PENDING)
+                continue;
+            else
+                break;
+        }
+
         if (bytes < data_size - message->size) {
             message->size += bytes;
             return message;
@@ -172,11 +182,8 @@ BSM* bs_recv_message(int fd, int expect_data) {
         }
 
         data = message->data + message->size;
-
         // doneski, we have read enough bytes.
         if (message->size >= expect_data_bytes) break;
-        // poll until ready to read.
-        if (bs_poll && data ) bs_poll(1, fd);
     }
 
     return message;
