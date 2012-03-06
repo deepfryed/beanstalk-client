@@ -22,6 +22,9 @@ make test
 ## C Example
 
 ```C
+
+// compile as: gcc -o example example.c -lbeanstalk
+
 #include "beanstalk.h"
 #include <stdio.h>
 #include <assert.h>
@@ -59,6 +62,9 @@ int main() {
 ## C++ Example
 
 ```C++
+
+// compile as: g++ -o example example.cc -lbeanstalk
+
 #include "beanstalk.hpp"
 #include <iostream>
 #include <assert.h>
