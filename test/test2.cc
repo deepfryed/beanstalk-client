@@ -10,7 +10,9 @@ using namespace Beanstalk;
 
 TEST(Connection, Connect) {
     Client client("127.0.0.1", 11300);
-    EXPECT_EQ(client.ping(), true);
+    ASSERT_TRUE(client.ping());
+    ASSERT_TRUE(client.disconnect());
+    ASSERT_FALSE(client.disconnect());
 }
 
 TEST(Connection, Failure) {

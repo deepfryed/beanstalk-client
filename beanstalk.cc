@@ -255,4 +255,12 @@ namespace Beanstalk {
 
         return false;
     }
+
+    bool Client::disconnect() {
+        if (handle > 0 && bs_disconnect(handle) == BS_STATUS_OK) {
+            handle = -1;
+            return true;
+        }
+        return false;
+    }
 }

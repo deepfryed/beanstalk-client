@@ -43,6 +43,7 @@ namespace Beanstalk {
             bool peek_delayed(Job &);
             bool peek_buried(Job &);
             bool kick(int bound);
+            bool disconnect();
             std::string list_tube_used();
             info_list_t list_tubes();
             info_list_t list_tubes_watched();
