@@ -26,6 +26,7 @@ namespace Beanstalk {
         public:
             ~Client();
             Client(std::string host, int port);
+            bool ping();
             bool use(std::string);
             bool watch(std::string);
             bool ignore(std::string);

@@ -245,4 +245,14 @@ namespace Beanstalk {
         }
         return stats;
     }
+
+    bool Client::ping() {
+        char *yaml;
+        if (bs_list_tubes(handle, &yaml) == BS_STATUS_OK) {
+            free(yaml);
+            return true;
+        }
+
+        return false;
+    }
 }
