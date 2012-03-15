@@ -34,7 +34,7 @@ int main() {
 
     // poll read & writes from now on.
     bs_start_polling(select_poll);
-    fcntl(handle, F_SETFL, O_NONBLOCK);
+    fcntl(handle, F_SETFL, fcntl(handle, F_GETFL) | O_NONBLOCK);
 
     assert(bs_reserve_with_timeout(handle, 2, &job) == BS_STATUS_OK);
     assert(job);
