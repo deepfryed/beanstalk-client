@@ -356,6 +356,10 @@ int bs_reserve_job(int fd, char *command, BSJ **result) {
     BSJ *job;
     BSM *message;
 
+//  XXX: debug
+//  struct timeval start, end;
+//  gettimeofday(&start, 0);
+
     BS_SEND(fd, command, strlen(command));
     message = bs_recv_message(fd, BS_MESSAGE_HAS_BODY);
     BS_CHECK_MESSAGE(message);
@@ -372,6 +376,9 @@ int bs_reserve_job(int fd, char *command, BSJ **result) {
         message->data  = 0;
         bs_free_message(message);
 
+    //  XXX: debug
+    //  gettimeofday(&end, 0);
+    //  printf("elapsed: %lu\n", (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
         return BS_STATUS_OK;
     }
 

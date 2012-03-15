@@ -12,7 +12,7 @@ LDFLAGS      = -L. -lbeanstalk
 CC           = gcc
 CPP          = g++
 
-all: $(CEXAMPLES) $(CPPEXAMPLES)
+all: $(CEXAMPLES) $(CPPEXAMPLES) benchmark
 
 test: $(TESTS)
 	test/run-all
@@ -22,6 +22,9 @@ $(TESTS): test/%:test/%.o $(SHAREDLIB)
 
 test/%.o: test/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
+
+benchmark: benchmark.cc libbeanstalk.so
+	$(CPP) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o libbeanstalk.so
 	$(CC) -o $@ $< $(LDFLAGS)

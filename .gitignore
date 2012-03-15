@@ -6,3 +6,4 @@ examples/**/*
 test/*
 !test/run-all
 !test/*.cc
+benchmark
