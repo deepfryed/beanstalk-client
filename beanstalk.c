@@ -1,5 +1,7 @@
 #include "beanstalk.h"
-#include "errno.h"
+#include <sys/time.h>
+#include <errno.h>
+#include <assert.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -195,6 +197,41 @@ size_t bs_send_message(int fd, char *message, size_t size) {
     return send(fd, message, size, bs_poll ? MSG_DONTWAIT : 0);
 }
 
+typedef struct bs_message_packet {
+    char *data;
+    size_t offset;
+    size_t size;
+} BSMP;
+
+BSMP* bs_message_packet_new(size_t bytes) {
+    BSMP *packet = (BSMP*)malloc(sizeof(BSMP));
+    assert(packet);
+
+    packet->data = (char*)malloc(bytes);
+    assert(packet->data);
+
+    packet->offset = 0;
+    packet->size   = bytes;
+
+    return packet;
+}
+
+void bs_message_packet_append(BSMP *packet, char *data, size_t bytes) {
+    if (packet->offset + bytes > packet->size) {
+        packet->data = (char*)realloc(packet->data, packet->size + bytes);
+        assert(packet->data);
+        packet->size += bytes;
+    }
+
+    memcpy(packet->data + packet->offset, data, bytes);
+    packet->offset += bytes;
+}
+
+void bs_message_packet_free(BSMP *packet) {
+    free(packet->data);
+    free(packet);
+}
+
 #define BS_SEND(fd, command, size) {                        \
     if (bs_send_message(fd, command, size) < 0)             \
         return BS_STATUS_FAIL;                              \
@@ -264,14 +301,21 @@ int bs_ignore(int fd, char *tube) {
 }
 
 int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
-    int id;
+    int id, command_bytes;
+    BSMP *packet;
     BSM *message;
     char command[1024];
 
     snprintf(command, 1024, "put %d %d %d %lu\r\n", priority, delay, ttr, bytes);
-    BS_SEND(fd, command, strlen(command));
-    BS_SEND(fd, data, bytes);
-    BS_SEND(fd, "\r\n", 2);
+
+    command_bytes = strlen(command);
+    packet = bs_message_packet_new(command_bytes + bytes + 3);
+    bs_message_packet_append(packet, command, command_bytes);
+    bs_message_packet_append(packet, data, bytes);
+    bs_message_packet_append(packet, "\r\n", 2);
+
+    BS_SEND(fd, packet->data, packet->offset);
+    bs_message_packet_free(packet);
 
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
