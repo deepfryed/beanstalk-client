@@ -7,3 +7,4 @@ test/*
 !test/run-all
 !test/*.cc
 benchmark
+siege*

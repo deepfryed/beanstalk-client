@@ -157,8 +157,10 @@ BSM* bs_recv_message(int fd, int expect_data) {
     data = message->data + message->size;
 
     // already read the body along with status, all good.
-    if (expect_data_bytes < message->size)
+    if (expect_data_bytes < message->size) {
+        message->size = expect_data_bytes;
         return message;
+    }
 
     while (1) {
         // poll until ready to read.
@@ -166,13 +168,16 @@ BSM* bs_recv_message(int fd, int expect_data) {
         if ((bytes = recv(fd, data, data_size - message->size, 0)) < 0) {
             if (bs_poll && DATA_PENDING)
                 continue;
-            else
-                break;
+            else {
+                bs_free_message(message);
+                return 0;
+            }
         }
 
-        if (bytes < data_size - message->size) {
-            message->size += bytes;
-            return message;
+        // doneski, we have read enough bytes + \r\n
+        if (message->size + bytes >= expect_data_bytes + 2) {
+            message->size = expect_data_bytes;
+            break;
         }
 
         data_size      += BS_READ_CHUNK_SIZE;
@@ -183,9 +188,8 @@ BSM* bs_recv_message(int fd, int expect_data) {
             return 0;
         }
 
+        // move ahead pointer for reading more.
         data = message->data + message->size;
-        // doneski, we have read enough bytes.
-        if (message->size >= expect_data_bytes) break;
     }
 
     return message;

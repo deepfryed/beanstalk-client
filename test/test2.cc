@@ -5,7 +5,9 @@
 #include "beanstalk.hpp"
 #include "gtest/gtest.h"
 #include <stdexcept>
+#include <string>
 
+using namespace std;
 using namespace Beanstalk;
 
 TEST(Connection, Connect) {
@@ -16,7 +18,7 @@ TEST(Connection, Connect) {
 }
 
 TEST(Connection, Failure) {
-    ASSERT_THROW(Client borked("123.456.789.0", 0), std::runtime_error);
+    ASSERT_THROW(Client borked("123.456.789.0", 0), runtime_error);
 }
 
 TEST(JOB, WATCH_USE_IGNORE) {
@@ -37,6 +39,36 @@ TEST(JOB, PUT_PEEK_RESERVE_DELETE) {
     ASSERT_TRUE(client.reserve(job));
     EXPECT_EQ(job.body(), "hello world!");
     ASSERT_TRUE(client.del(job.id()));
+}
+
+TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
+    Job job;
+    Client client1("127.0.0.1", 11300);
+    Client client2("127.0.0.1", 11300);
+    Client client3("127.0.0.1", 11300);
+    ASSERT_TRUE(client1.use("test1"));
+    ASSERT_TRUE(client2.watch("test1"));
+    ASSERT_TRUE(client2.use("test2"));
+    ASSERT_TRUE(client3.watch("test2"));
+
+    string json = "[";
+    for (int i = 0; i < 5000; i++)
+        json += "\"hello\",";
+    json += "\"hello\"]";
+
+    for (int i = 0; i < 1000; i++)
+        client1.put(json);
+
+    for (int i = 0; i < 1000; i++) {
+        client2.reserve(job);
+        client2.put(job.body());
+        client2.del(job.id());
+    }
+
+    for (int i = 0; i < 1000; i++) {
+        client3.reserve(job);
+        ASSERT_EQ(job.body(), json);
+    }
 }
 
 int main(int argc, char *argv[]) {

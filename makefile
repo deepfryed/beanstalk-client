@@ -7,7 +7,7 @@ CPPEXAMPLES := $(SOURCES3:%.cc=%)
 
 VERSION      = 1.0.0
 SHAREDLIB    = libbeanstalk.so
-CFLAGS       = -Wall -g -I.
+CFLAGS       = -Wall -Wno-signed-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
 CC           = gcc
 CPP          = g++
@@ -23,16 +23,16 @@ $(TESTS): test/%:test/%.o $(SHAREDLIB)
 test/%.o: test/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
 
-benchmark: benchmark.cc libbeanstalk.so
+benchmark: benchmark.cc $(SHAREDLIB)
 	$(CPP) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
 
-$(CEXAMPLES): examples/c/%:examples/c/%.o libbeanstalk.so
+$(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
 	$(CC) -o $@ $< $(LDFLAGS)
 
 examples/c/%.o: examples/c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o libbeanstalk.so
+$(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
 	$(CPP) -o $@ $< $(LDFLAGS)
 
 examples/cpp/%.o: examples/cpp/%.cc
