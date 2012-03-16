@@ -51,13 +51,12 @@ TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
     ASSERT_TRUE(client2.use("test2"));
     ASSERT_TRUE(client3.watch("test2"));
 
-    string json = "[";
+    string message = "12345";
     for (int i = 0; i < 5000; i++)
-        json += "\"hello\",";
-    json += "\"hello\"]";
+        message += ", 12345";
 
     for (int i = 0; i < 1000; i++)
-        client1.put(json);
+        client1.put(message);
 
     for (int i = 0; i < 1000; i++) {
         client2.reserve(job);
@@ -67,7 +66,7 @@ TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
 
     for (int i = 0; i < 1000; i++) {
         client3.reserve(job);
-        ASSERT_EQ(job.body(), json);
+        ASSERT_EQ(job.body(), message);
     }
 }
 
