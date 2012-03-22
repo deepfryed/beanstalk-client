@@ -25,6 +25,7 @@ namespace Beanstalk {
     class Client {
         public:
             ~Client();
+            Client();
             Client(std::string host, int port);
             bool ping();
             bool use(std::string);
@@ -43,6 +44,8 @@ namespace Beanstalk {
             bool peek_delayed(Job &);
             bool peek_buried(Job &);
             bool kick(int bound);
+            void connect(std::string host, int port);
+            void reconnect();
             bool disconnect();
             std::string list_tube_used();
             info_list_t list_tubes();
@@ -51,6 +54,7 @@ namespace Beanstalk {
             info_hash_t stats_job(int);
             info_hash_t stats_tube(std::string);
         protected:
-            int handle;
+            int handle, port;
+            std::string host;
     };
 }

@@ -17,6 +17,14 @@ TEST(Connection, Connect) {
     ASSERT_FALSE(client.disconnect());
 }
 
+TEST(Connection, Reconnect) {
+    Client client("127.0.0.1", 11300);
+    ASSERT_TRUE(client.ping());
+    ASSERT_THROW(client.connect("127.0.0.1", 11300), runtime_error);
+    ASSERT_NO_THROW(client.reconnect());
+    ASSERT_TRUE(client.ping());
+}
+
 TEST(Connection, Failure) {
     ASSERT_THROW(Client borked("123.456.789.0", 0), runtime_error);
 }

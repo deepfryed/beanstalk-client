@@ -65,10 +65,38 @@ namespace Beanstalk {
         bs_disconnect(handle);
     }
 
+    Client::Client() {
+        handle = -1;
+        host   = "";
+        port   = 0;
+    }
+
     Client::Client(string host, int port) {
+        handle = -1;
+        connect(host, port);
+    }
+
+    void Client::connect(string _host, int _port) {
+        if (handle > 0)
+            throw runtime_error("already connected to beanstalkd at " + host);
+        host = _host;
+        port = _port;
         handle = bs_connect((char*)host.c_str(), port);
         if (handle < 0)
             throw runtime_error("unable to connect to beanstalkd at " + host);
+    }
+
+    bool Client::disconnect() {
+        if (handle > 0 && bs_disconnect(handle) == BS_STATUS_OK) {
+            handle = -1;
+            return true;
+        }
+        return false;
+    }
+
+    void Client::reconnect() {
+        disconnect();
+        connect(host, port);
     }
 
     bool Client::use(string tube) {
@@ -253,14 +281,6 @@ namespace Beanstalk {
             return true;
         }
 
-        return false;
-    }
-
-    bool Client::disconnect() {
-        if (handle > 0 && bs_disconnect(handle) == BS_STATUS_OK) {
-            handle = -1;
-            return true;
-        }
         return false;
     }
 }
