@@ -41,7 +41,7 @@ TEST(JOB, PUT_PEEK_RESERVE_DELETE) {
     Client client("127.0.0.1", 11300);
     ASSERT_TRUE(client.watch("test"));
     ASSERT_TRUE(client.use("test"));
-    EXPECT_GT(client.put("hello world!"), 0);
+    EXPECT_GT(client.put("hello world!", 0, 0, 2), 0);
     ASSERT_TRUE(client.peek_ready(job));
     EXPECT_EQ(job.body(), "hello world!");
     ASSERT_TRUE(client.reserve(job));

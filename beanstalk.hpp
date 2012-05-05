@@ -32,7 +32,7 @@ namespace Beanstalk {
             bool watch(std::string);
             bool ignore(std::string);
             int  put(std::string, int priority = 0, int delay = 0, int ttr = 60);
-            int  put(char *data, size_t bytes, int priority = 0, int delay = 0, int ttr = 60);
+            int  put(char *data, size_t bytes, int priority, int delay, int ttr);
             bool del(int id);
             bool reserve(Job &);
             bool reserve(Job &, int timeout);
