@@ -46,7 +46,7 @@ TEST(JOB, PUT_PEEK_RESERVE_DELETE) {
     EXPECT_EQ(job.body(), "hello world!");
     ASSERT_TRUE(client.reserve(job));
     EXPECT_EQ(job.body(), "hello world!");
-    ASSERT_TRUE(client.del(job.id()));
+    ASSERT_TRUE(client.del(job));
 }
 
 TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
@@ -69,7 +69,7 @@ TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
     for (int i = 0; i < 1000; i++) {
         client2.reserve(job);
         client2.put(job.body());
-        client2.del(job.id());
+        ASSERT_TRUE(client2.del(job.id()));
     }
 
     for (int i = 0; i < 1000; i++) {

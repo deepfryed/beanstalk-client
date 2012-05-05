@@ -305,10 +305,11 @@ int bs_ignore(int fd, char *tube) {
 }
 
 int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
-    int id, command_bytes;
+    int id;
     BSMP *packet;
     BSM *message;
     char command[1024];
+    size_t command_bytes;
 
     snprintf(command, 1024, "put %d %d %d %lu\r\n", priority, delay, ttr, bytes);
 

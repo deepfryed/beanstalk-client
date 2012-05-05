@@ -34,10 +34,14 @@ namespace Beanstalk {
             int  put(std::string, int priority = 0, int delay = 0, int ttr = 60);
             int  put(char *data, size_t bytes, int priority, int delay, int ttr);
             bool del(int id);
+            bool del(Job&);
             bool reserve(Job &);
             bool reserve(Job &, int timeout);
+            bool release(Job &, int priority = 1, int delay = 0);
             bool release(int id, int priority = 1, int delay = 0);
+            bool bury(Job &, int priority = 1);
             bool bury(int id, int priority = 1);
+            bool touch(Job &);
             bool touch(int id);
             bool peek(Job &, int id);
             bool peek_ready(Job &);

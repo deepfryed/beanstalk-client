@@ -121,6 +121,10 @@ namespace Beanstalk {
         return (id > 0 ? id : 0);
     }
 
+    bool Client::del(Job &job) {
+        return bs_delete(handle, job.id()) == BS_STATUS_OK;
+    }
+
     bool Client::del(int id) {
         return bs_delete(handle, id) == BS_STATUS_OK;
     }
@@ -143,12 +147,24 @@ namespace Beanstalk {
         return false;
     }
 
+    bool Client::release(Job &job, int priority, int delay) {
+        return bs_release(handle, job.id(), priority, delay) == BS_STATUS_OK;
+    }
+
     bool Client::release(int id, int priority, int delay) {
         return bs_release(handle, id, priority, delay) == BS_STATUS_OK;
     }
 
+    bool Client::bury(Job &job, int priority) {
+        return bs_bury(handle, job.id(), priority) == BS_STATUS_OK;
+    }
+
     bool Client::bury(int id, int priority) {
         return bs_bury(handle, id, priority) == BS_STATUS_OK;
+    }
+
+    bool Client::touch(Job &job) {
+        return bs_touch(handle, job.id()) == BS_STATUS_OK;
     }
 
     bool Client::touch(int id) {
