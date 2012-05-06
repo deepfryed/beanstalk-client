@@ -2,6 +2,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <assert.h>
+#include <strings.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
