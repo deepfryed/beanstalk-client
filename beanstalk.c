@@ -72,7 +72,7 @@ int bs_connect(char *host, int port) {
 
     freeaddrinfo(addr);
     if (connect(fd, (struct sockaddr*)&server, sizeof(server)) != 0) {
-        shutdown(fd, SHUT_RDWR);
+        close(fd);
         return BS_STATUS_FAIL;
     }
 
@@ -80,7 +80,7 @@ int bs_connect(char *host, int port) {
 }
 
 int bs_disconnect(int fd) {
-    shutdown(fd, SHUT_RDWR);
+    close(fd);
     return BS_STATUS_OK;
 }
 
