@@ -11,14 +11,13 @@ VERSION      = 1.0.0
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
-CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LNOPTS       = -sf
 else
 SHAREDLIB    = libbeanstalk.so
-CFLAGS       = -Wall -Wno-signed-compare -g -I.
 LNOPTS       = -sfT
 endif
 
+CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
 CC           = gcc
 CPP          = g++
