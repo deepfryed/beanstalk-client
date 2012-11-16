@@ -1,3 +1,5 @@
+OS := $(shell uname)
+
 SOURCES1    := $(wildcard test/*.cc)
 SOURCES2    := $(wildcard examples/c/*.c)
 SOURCES3    := $(wildcard examples/cpp/*.cc)
@@ -6,8 +8,16 @@ CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
 
 VERSION      = 1.0.0
+
+ifeq ($(OS), Darwin)
+SHAREDLIB    = libbeanstalk.dylib
+LNOPTS       = -sf
+else
 SHAREDLIB    = libbeanstalk.so
-CFLAGS       = -Wall -Wno-signed-compare -g -I.
+LNOPTS       = -sfT
+endif
+
+CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
 CC           = gcc
 CPP          = g++
@@ -51,8 +61,8 @@ install: $(SHAREDLIB)
 	cp beanstalk.h /usr/include
 	cp beanstalk.hpp /usr/include
 	cp $(SHAREDLIB) /usr/lib/$(SHAREDLIB).$(VERSION)
-	ln -sfT /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB).1
-	ln -sfT /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB)
+	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB).1
+	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB)
 
 uninstall:
 	rm -f /usr/include/beanstalk.h
