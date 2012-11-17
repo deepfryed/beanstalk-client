@@ -1,5 +1,7 @@
 *.o
 *.so
+*.dylib
+*.dSYM
 examples/**/*
 !examples/c/*.c
 !examples/cpp/*.cc
