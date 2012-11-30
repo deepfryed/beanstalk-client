@@ -10,7 +10,8 @@ using namespace Beanstalk;
 
 typedef struct timeval timeval;
 
-#define WINDOW 1000
+#define WINDOW     1000
+#define TOTAL_JOBS 100000
 
 double duration(timeval *start, timeval *end) {
     return (double)((end->tv_sec * 1000000 + end->tv_usec) - (start->tv_sec * 1000000 + start->tv_usec)) / 1000000.0;
@@ -21,7 +22,7 @@ void* producer(void *arg) {
 
     timeval start, end;
     gettimeofday(&start, 0);
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < TOTAL_JOBS; i++) {
         client.put("hello world");
         if (i > 0 && i % WINDOW == 0) {
             gettimeofday(&end, 0);
@@ -40,7 +41,7 @@ void* consumer(void *arg) {
     size_t jobs = 0;
     timeval start, end;
     gettimeofday(&start, 0);
-    while (client.reserve(job)) {
+    while (jobs < TOTAL_JOBS && client.reserve(job)) {
         jobs++;
         client.del(job.id());
         if (jobs % WINDOW == 0) {
