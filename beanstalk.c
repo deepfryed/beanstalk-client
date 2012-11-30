@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <strings.h>
+#include <netinet/tcp.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -53,7 +54,7 @@ const char* bs_status_text(int code) {
 }
 
 int bs_connect(char *host, int port) {
-    int fd;
+    int fd, state = 1;
     char service[64];
     struct sockaddr_in server;
     struct addrinfo *addr, *rec;
@@ -76,6 +77,8 @@ int bs_connect(char *host, int port) {
         return BS_STATUS_FAIL;
     }
 
+    /* disable nagle - we buffer in the application layer */
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &state, sizeof(state));
     return fd;
 }
 
