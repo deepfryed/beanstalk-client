@@ -1,4 +1,5 @@
 *.o
+*.a
 *.so
 *.dylib
 *.dSYM
@@ -10,3 +11,5 @@ test/*
 !test/*.cc
 benchmark
 siege*
+.cproject
+.project
