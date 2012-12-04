@@ -17,6 +17,7 @@ SHAREDLIB    = libbeanstalk.so
 LNOPTS       = -sfT
 endif
 
+STATICLIB    = libbeanstalk.a
 CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
 CC           = gcc
@@ -48,6 +49,10 @@ $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
 examples/cpp/%.o: examples/cpp/%.cc
 	$(CPP) $(CFLAGS) -c -o $@ $<
 
+$(STATICLIB): beanstalk.o beanstalkcpp.o
+	rm -f $@
+	ar -cq $@ $^
+
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
 	$(CPP) -shared -o $(SHAREDLIB) beanstalk.o beanstalkcpp.o
 
@@ -57,17 +62,21 @@ beanstalk.o: beanstalk.c beanstalk.h makefile
 beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
-install: $(SHAREDLIB)
+install: $(SHAREDLIB) $(STATICLIB)
 	cp beanstalk.h /usr/include
 	cp beanstalk.hpp /usr/include
 	cp $(SHAREDLIB) /usr/lib/$(SHAREDLIB).$(VERSION)
 	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB).1
 	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB)
+	cp $(STATICLIB) /usr/lib/$(STATICLIB).$(VERSION)
+	ln $(LNOPTS) /usr/lib/$(STATICLIB).$(VERSION) /usr/lib/$(STATICLIB).1
+	ln $(LNOPTS) /usr/lib/$(STATICLIB).$(VERSION) /usr/lib/$(STATICLIB)
 
 uninstall:
 	rm -f /usr/include/beanstalk.h
 	rm -f /usr/include/beanstalk.hpp
 	rm -f /usr/lib/$(SHAREDLIB)*
+	rm -f /usr/lib/$(STATICLIB)*
 
 clean:
 	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/**/*.o examples/**/example?
