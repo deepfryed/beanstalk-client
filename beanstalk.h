@@ -8,6 +8,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include <netinet/in.h>
+#include <sys/fcntl.h>
+
 #define BS_STATUS_OK             0
 #define BS_STATUS_FAIL          -1
 #define BS_STATUS_EXPECTED_CRLF -2
@@ -57,6 +60,8 @@ typedef int (*bs_poll_function)(int rw, int fd);
 #       define BSC_EXPORT
 #   endif
 #endif
+
+BSC_EXPORT void bs_set_timeout(int sec, int usec);
 
 // polling setup
 BSC_EXPORT void bs_start_polling(bs_poll_function f);

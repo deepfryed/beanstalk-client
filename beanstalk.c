@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <assert.h>
 #include <strings.h>
-#include <netinet/tcp.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -53,11 +52,26 @@ const char* bs_status_text(int code) {
     return (code > sizeof(bs_status_verbose) / sizeof(char*)) ? 0 : bs_status_verbose[code];
 }
 
+int bs_timeout_sec = 1;
+int bs_timeout_usec = 0;
+
+void bs_set_timeout(int sec, int usec)
+{
+    bs_timeout_sec = sec;
+    bs_timeout_usec = usec;
+}
+
 int bs_connect(char *host, int port) {
-    int fd, state = 1;
+    int fd;
     char service[64];
     struct sockaddr_in server;
     struct addrinfo *addr, *rec;
+    struct timeval tv;
+    fd_set myset;
+    int res;
+    int valopt;
+    socklen_t lon;
+    long arg;
 
     snprintf(service, 64, "%d", port);
     fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -72,13 +86,41 @@ int bs_connect(char *host, int port) {
     }
 
     freeaddrinfo(addr);
-    if (connect(fd, (struct sockaddr*)&server, sizeof(server)) != 0) {
-        close(fd);
-        return BS_STATUS_FAIL;
+
+    // Set non-blocking 
+    arg = fcntl(fd, F_GETFL, NULL); 
+    arg |= O_NONBLOCK; 
+    fcntl(fd, F_SETFL, arg);
+
+    res = connect(fd, (struct sockaddr*)&server, sizeof(server));
+    if (res < 0) {
+        if (errno == EINPROGRESS) {
+            tv.tv_sec = bs_timeout_sec; 
+            tv.tv_usec = bs_timeout_usec; 
+            FD_ZERO(&myset); 
+            FD_SET(fd, &myset); 
+            if (select(fd+1, NULL, &myset, NULL, &tv) > 0) { 
+                lon = sizeof(int); 
+                getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon); 
+                if (valopt) { 
+                    close(fd);
+                    return BS_STATUS_FAIL;
+                } 
+            }  else { 
+                close(fd);
+                return BS_STATUS_FAIL;
+            } 
+        } else {
+            close(fd);
+            return BS_STATUS_FAIL;
+        }
     }
 
-    /* disable nagle - we buffer in the application layer */
-    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &state, sizeof(state));
+    // Set to blocking mode
+    arg = fcntl(fd, F_GETFL, NULL); 
+    arg &= (~O_NONBLOCK); 
+    fcntl(fd, F_SETFL, arg); 
+
     return fd;
 }
 
