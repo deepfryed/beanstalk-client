@@ -53,29 +53,86 @@ const char* bs_status_text(int code) {
     return (code > sizeof(bs_status_verbose) / sizeof(char*)) ? 0 : bs_status_verbose[code];
 }
 
-int bs_connect(char *host, int port) {
-    int fd, state = 1;
+int bs_resolve_address(char *host, int port, struct sockaddr_in *server) {
     char service[64];
-    struct sockaddr_in server;
     struct addrinfo *addr, *rec;
 
     snprintf(service, 64, "%d", port);
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0 || getaddrinfo(host, service, 0, &addr) != 0)
+    if (getaddrinfo(host, service, 0, &addr) != 0)
         return BS_STATUS_FAIL;
 
     for (rec = addr; rec != 0; rec = rec->ai_next) {
         if (rec->ai_family == AF_INET) {
-            memcpy(&server, rec->ai_addr, sizeof(server));
+            memcpy(server, rec->ai_addr, sizeof(*server));
             break;
         }
     }
 
     freeaddrinfo(addr);
+    return BS_STATUS_OK;
+}
+
+int bs_connect(char *host, int port) {
+    int fd, state = 1;
+    struct sockaddr_in server;
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0 || bs_resolve_address(host, port, &server) < 0)
+        return BS_STATUS_FAIL;
+
     if (connect(fd, (struct sockaddr*)&server, sizeof(server)) != 0) {
         close(fd);
         return BS_STATUS_FAIL;
     }
+
+    /* disable nagle - we buffer in the application layer */
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &state, sizeof(state));
+    return fd;
+}
+
+int bs_connect_with_timeout(char *host, int port, float secs) {
+    struct sockaddr_in server;
+    int fd, res, option, state = 1;
+    socklen_t option_length;
+
+    struct timeval timeout;
+    fd_set fdset;
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0 || bs_resolve_address(host, port, &server) < 0)
+        return BS_STATUS_FAIL;
+
+    // Set non-blocking
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, NULL) | O_NONBLOCK);
+
+    res = connect(fd, (struct sockaddr*)&server, sizeof(server));
+    if (res < 0) {
+        if (errno == EINPROGRESS) {
+            timeout.tv_sec  = (int)secs;
+            timeout.tv_usec = (secs - (int)secs) * 1000000;
+
+            FD_ZERO(&fdset);
+            FD_SET(fd, &fdset);
+
+            if (select(fd + 1, NULL, &fdset, NULL, &timeout) > 0) {
+                option_length = sizeof(int);
+                getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)(&option), &option_length);
+                if (option) {
+                    close(fd);
+                    return BS_STATUS_FAIL;
+                }
+            } else {
+                close(fd);
+                return BS_STATUS_FAIL;
+            }
+        } else {
+            close(fd);
+            return BS_STATUS_FAIL;
+        }
+    }
+
+    // Set to blocking mode
+    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, NULL) & ~(O_NONBLOCK));
 
     /* disable nagle - we buffer in the application layer */
     setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &state, sizeof(state));
