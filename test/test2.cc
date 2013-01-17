@@ -26,7 +26,7 @@ TEST(Connection, Reconnect) {
 }
 
 TEST(Connection, Failure) {
-    ASSERT_THROW(Client borked("123.456.789.0", 0), runtime_error);
+    ASSERT_THROW(Client borked("example.org", 3000, 1.25), runtime_error);
 }
 
 TEST(JOB, WATCH_USE_IGNORE) {

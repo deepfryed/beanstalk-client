@@ -8,6 +8,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include <netinet/in.h>
+#include <sys/fcntl.h>
+
 #define BS_STATUS_OK             0
 #define BS_STATUS_FAIL          -1
 #define BS_STATUS_EXPECTED_CRLF -2
@@ -70,6 +73,8 @@ BSC_EXPORT void bs_free_job(BSJ *job);
 
 // returns socket descriptor or BS_STATUS_FAIL
 BSC_EXPORT int bs_connect(char *host, int port);
+BSC_EXPORT int bs_connect_with_timeout(char *host, int port, float secs);
+
 // returns job id or one of the negative failure codes.
 BSC_EXPORT int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
 

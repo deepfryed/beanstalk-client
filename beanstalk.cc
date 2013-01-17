@@ -66,22 +66,27 @@ namespace Beanstalk {
     }
 
     Client::Client() {
-        handle = -1;
-        host   = "";
-        port   = 0;
+        handle       = -1;
+        host         = "";
+        port         = 0;
+        timeout_secs = 0;
     }
 
-    Client::Client(string host, int port) {
-        handle = -1;
-        connect(host, port);
+    Client::Client(string host, int port, float secs) {
+        handle       = -1;
+        timeout_secs = secs;
+        connect(host, port, timeout_secs);
     }
 
-    void Client::connect(string _host, int _port) {
+    void Client::connect(string _host, int _port, float secs) {
         if (handle > 0)
             throw runtime_error("already connected to beanstalkd at " + host);
-        host = _host;
-        port = _port;
-        handle = bs_connect((char*)host.c_str(), port);
+
+        host         = _host;
+        port         = _port;
+        timeout_secs = secs;
+
+        handle = secs > 0 ? bs_connect_with_timeout((char *)host.c_str(), port, secs) : bs_connect((char*)host.c_str(), port);
         if (handle < 0)
             throw runtime_error("unable to connect to beanstalkd at " + host);
     }
@@ -96,7 +101,7 @@ namespace Beanstalk {
 
     void Client::reconnect() {
         disconnect();
-        connect(host, port);
+        connect(host, port, timeout_secs);
     }
 
     bool Client::use(string tube) {
