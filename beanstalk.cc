@@ -81,8 +81,11 @@ namespace Beanstalk {
     void Client::connect(string _host, int _port, float secs) {
         if (handle > 0)
             throw runtime_error("already connected to beanstalkd at " + host);
-        host   = _host;
-        port   = _port;
+
+        host         = _host;
+        port         = _port;
+        timeout_secs = secs;
+
         handle = secs > 0 ? bs_connect_with_timeout((char *)host.c_str(), port, secs) : bs_connect((char*)host.c_str(), port);
         if (handle < 0)
             throw runtime_error("unable to connect to beanstalkd at " + host);
