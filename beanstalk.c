@@ -218,7 +218,7 @@ BSM* bs_recv_message(int fd, int expect_data) {
     data = message->data + message->size;
 
     // already read the body along with status, all good.
-    if (expect_data_bytes < message->size) {
+    if ((expect_data_bytes + 2) <= message->size) {
         message->size = expect_data_bytes;
         return message;
     }
