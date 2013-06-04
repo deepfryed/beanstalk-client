@@ -26,7 +26,11 @@ const char *bs_status_verbose[] = {
     "Not found",
     "Deadline soon",
     "Buried",
-    "Not ignored"
+    "Not ignored",
+    "Out of memory",
+    "Internal error",
+    "Bad format",
+    "Unknown command"
 };
 
 const char bs_resp_using[]          = "USING";
@@ -47,6 +51,10 @@ const char bs_resp_not_ignored[]    = "NOT_IGNORED";
 const char bs_resp_found[]          = "FOUND";
 const char bs_resp_kicked[]         = "KICKED";
 const char bs_resp_ok[]             = "OK";
+const char bs_resp_out_of_memory[]  = "OUT_OF_MEMORY";
+const char bs_resp_internal_error[] = "INTERNAL_ERROR";
+const char bs_resp_bad_format[]     = "BAD_FORMAT";
+const char bs_resp_unknown_command[]= "UNKNOWN_COMMAND";
 
 const char* bs_status_text(int code) {
     code = abs(code);
@@ -322,6 +330,10 @@ void bs_message_packet_free(BSMP *packet) {
 }
 
 #define BS_RETURN_INVALID(message) {                        \
+    BS_RETURN_FAIL_WHEN(message, bs_resp_out_of_memory, BS_STATUS_OUT_OF_MEMORY);     \
+    BS_RETURN_FAIL_WHEN(message, bs_resp_internal_error, BS_STATUS_INTERNAL_ERROR);   \
+    BS_RETURN_FAIL_WHEN(message, bs_resp_bad_format, BS_STATUS_BAD_FORMAT);           \
+    BS_RETURN_FAIL_WHEN(message, bs_resp_unknown_command, BS_STATUS_UNKNOWN_COMMAND); \
     bs_free_message(message);                               \
     return BS_STATUS_FAIL;                                  \
 }

@@ -11,16 +11,20 @@
 #include <netinet/in.h>
 #include <sys/fcntl.h>
 
-#define BS_STATUS_OK             0
-#define BS_STATUS_FAIL          -1
-#define BS_STATUS_EXPECTED_CRLF -2
-#define BS_STATUS_JOB_TOO_BIG   -3
-#define BS_STATUS_DRAINING      -4
-#define BS_STATUS_TIMED_OUT     -5
-#define BS_STATUS_NOT_FOUND     -6
-#define BS_STATUS_DEADLINE_SOON -7
-#define BS_STATUS_BURIED        -8
-#define BS_STATUS_NOT_IGNORED   -9
+#define BS_STATUS_OK                0
+#define BS_STATUS_FAIL             -1
+#define BS_STATUS_EXPECTED_CRLF    -2
+#define BS_STATUS_JOB_TOO_BIG      -3
+#define BS_STATUS_DRAINING         -4
+#define BS_STATUS_TIMED_OUT        -5
+#define BS_STATUS_NOT_FOUND        -6
+#define BS_STATUS_DEADLINE_SOON    -7
+#define BS_STATUS_BURIED           -8
+#define BS_STATUS_NOT_IGNORED      -9
+#define BS_STATUS_OUT_OF_MEMORY   -10
+#define BS_STATUS_INTERNAL_ERROR  -11
+#define BS_STATUS_BAD_FORMAT      -12
+#define BS_STATUS_UNKNOWN_COMMAND -13
 
 #ifdef __cplusplus
     extern "C" {
