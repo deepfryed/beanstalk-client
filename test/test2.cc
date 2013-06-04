@@ -78,6 +78,23 @@ TEST(JOB, MULTIPLE_LARGE_MESSAGES) {
     }
 }
 
+TEST(JOB, INITIAL_READ_BUFFER) {
+    Job job;
+    Client client("127.0.0.1", 11300);
+    ASSERT_TRUE(client.use("test"));
+    ASSERT_TRUE(client.watch("test"));
+
+    for (int i = 480; i < 500; i++) {
+      string message(i, 'x');
+
+      client.put(message);
+
+      ASSERT_TRUE(client.reserve(job));
+      ASSERT_TRUE(client.del(job.id()));
+    }
+    client.disconnect();
+}
+
 int main(int argc, char *argv[]) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
