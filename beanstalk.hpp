@@ -11,14 +11,14 @@ namespace Beanstalk {
 
     class Job {
         public:
-            int id();
+            int64_t id();
             std::string& body();
-            Job(int, char*, size_t);
+            Job(int64_t, char*, size_t);
             Job(BSJ*);
             Job();
             operator bool() { return _id > 0; }
         protected:
-            int _id;
+            int64_t _id;
             std::string _body;
     };
 
@@ -31,19 +31,19 @@ namespace Beanstalk {
             bool use(std::string);
             bool watch(std::string);
             bool ignore(std::string);
-            int  put(std::string, int priority = 0, int delay = 0, int ttr = 60);
-            int  put(char *data, size_t bytes, int priority, int delay, int ttr);
-            bool del(int id);
+            int64_t put(std::string, uint32_t priority = 0, uint32_t delay = 0, uint32_t ttr = 60);
+            int64_t put(char *data, size_t bytes, uint32_t priority, uint32_t delay, uint32_t ttr);
+            bool del(int64_t id);
             bool del(Job&);
             bool reserve(Job &);
-            bool reserve(Job &, int timeout);
-            bool release(Job &, int priority = 1, int delay = 0);
-            bool release(int id, int priority = 1, int delay = 0);
-            bool bury(Job &, int priority = 1);
-            bool bury(int id, int priority = 1);
+            bool reserve(Job &, uint32_t timeout);
+            bool release(Job &, uint32_t priority = 1, uint32_t delay = 0);
+            bool release(int64_t id, uint32_t priority = 1, uint32_t delay = 0);
+            bool bury(Job &, uint32_t priority = 1);
+            bool bury(int64_t id, uint32_t priority = 1);
             bool touch(Job &);
-            bool touch(int id);
-            bool peek(Job &, int id);
+            bool touch(int64_t id);
+            bool peek(Job &, int64_t id);
             bool peek_ready(Job &);
             bool peek_delayed(Job &);
             bool peek_buried(Job &);
@@ -55,7 +55,7 @@ namespace Beanstalk {
             info_list_t list_tubes();
             info_list_t list_tubes_watched();
             info_hash_t stats();
-            info_hash_t stats_job(int);
+            info_hash_t stats_job(int64_t);
             info_hash_t stats_tube(std::string);
         protected:
             float timeout_secs;
