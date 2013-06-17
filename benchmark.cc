@@ -17,7 +17,7 @@ double duration(timeval *start, timeval *end) {
     return (double)((end->tv_sec * 1000000 + end->tv_usec) - (start->tv_sec * 1000000 + start->tv_usec)) / 1000000.0;
 }
 
-void* producer(void *arg) {
+void* producer(void* /*arg*/) {
     Client client("127.0.0.1", 11300);
 
     timeval start, end;
@@ -34,7 +34,7 @@ void* producer(void *arg) {
     return 0;
 }
 
-void* consumer(void *arg) {
+void* consumer(void* /*arg*/) {
     Client client("127.0.0.1", 11300);
 
     Job job;

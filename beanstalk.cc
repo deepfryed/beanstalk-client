@@ -11,7 +11,7 @@ namespace Beanstalk {
         _id = 0;
     }
 
-    Job::Job(int id, char *data, size_t size) {
+    Job::Job(int64_t id, char *data, size_t size) {
         _body.assign(data, size);
         _id = id;
     }
@@ -31,7 +31,7 @@ namespace Beanstalk {
         return _body;
     }
 
-    int Job::id() {
+    int64_t Job::id() {
         return _id;
     }
 
@@ -116,13 +116,13 @@ namespace Beanstalk {
         return bs_ignore(handle, (char*)tube.c_str()) == BS_STATUS_OK;
     }
 
-    int Client::put(string body, int priority, int delay, int ttr) {
-        int id = bs_put(handle, priority, delay, ttr, (char*)body.data(), body.size());
+    int64_t Client::put(string body, uint32_t priority, uint32_t delay, uint32_t ttr) {
+        int64_t id = bs_put(handle, priority, delay, ttr, (char*)body.data(), body.size());
         return (id > 0 ? id : 0);
     }
 
-    int Client::put(char *body, size_t bytes, int priority, int delay, int ttr) {
-        int id = bs_put(handle, priority, delay, ttr, body, bytes);
+    int64_t Client::put(char *body, size_t bytes, uint32_t priority, uint32_t delay, uint32_t ttr) {
+        int64_t id = bs_put(handle, priority, delay, ttr, body, bytes);
         return (id > 0 ? id : 0);
     }
 
@@ -130,7 +130,7 @@ namespace Beanstalk {
         return bs_delete(handle, job.id()) == BS_STATUS_OK;
     }
 
-    bool Client::del(int id) {
+    bool Client::del(int64_t id) {
         return bs_delete(handle, id) == BS_STATUS_OK;
     }
 
@@ -143,7 +143,7 @@ namespace Beanstalk {
         return false;
     }
 
-    bool Client::reserve(Job &job, int timeout) {
+    bool Client::reserve(Job &job, uint32_t timeout) {
         BSJ *bsj;
         if (bs_reserve_with_timeout(handle, timeout, &bsj) == BS_STATUS_OK) {
             job = bsj;
@@ -152,19 +152,19 @@ namespace Beanstalk {
         return false;
     }
 
-    bool Client::release(Job &job, int priority, int delay) {
+    bool Client::release(Job &job, uint32_t priority, uint32_t delay) {
         return bs_release(handle, job.id(), priority, delay) == BS_STATUS_OK;
     }
 
-    bool Client::release(int id, int priority, int delay) {
+    bool Client::release(int64_t id, uint32_t priority, uint32_t delay) {
         return bs_release(handle, id, priority, delay) == BS_STATUS_OK;
     }
 
-    bool Client::bury(Job &job, int priority) {
+    bool Client::bury(Job &job, uint32_t priority) {
         return bs_bury(handle, job.id(), priority) == BS_STATUS_OK;
     }
 
-    bool Client::bury(int id, int priority) {
+    bool Client::bury(int64_t id, uint32_t priority) {
         return bs_bury(handle, id, priority) == BS_STATUS_OK;
     }
 
@@ -172,11 +172,11 @@ namespace Beanstalk {
         return bs_touch(handle, job.id()) == BS_STATUS_OK;
     }
 
-    bool Client::touch(int id) {
+    bool Client::touch(int64_t id) {
         return bs_touch(handle, id) == BS_STATUS_OK;
     }
 
-    bool Client::peek(Job &job, int id) {
+    bool Client::peek(Job &job, int64_t id) {
         BSJ *bsj;
         if (bs_peek(handle, id, &bsj) == BS_STATUS_OK) {
             job = bsj;
@@ -267,7 +267,7 @@ namespace Beanstalk {
         return stats;
     }
 
-    info_hash_t Client::stats_job(int id) {
+    info_hash_t Client::stats_job(int64_t id) {
         char *yaml, *data;
         info_hash_t stats;
         string key, value;

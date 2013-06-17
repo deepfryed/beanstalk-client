@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,7 +34,7 @@ typedef struct bs_message {
 } BSM;
 
 typedef struct bs_job {
-    int id;
+    int64_t id;
     char *data;
     size_t size;
 } BSJ;
@@ -76,20 +77,20 @@ BSC_EXPORT int bs_connect(char *host, int port);
 BSC_EXPORT int bs_connect_with_timeout(char *host, int port, float secs);
 
 // returns job id or one of the negative failure codes.
-BSC_EXPORT int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes);
+BSC_EXPORT int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *data, size_t bytes);
 
 // rest return BS_STATUS_OK or one of the failure codes.
 BSC_EXPORT int bs_disconnect(int fd);
 BSC_EXPORT int bs_use(int fd, char *tube);
 BSC_EXPORT int bs_watch(int fd, char *tube);
 BSC_EXPORT int bs_ignore(int fd, char *tube);
-BSC_EXPORT int bs_delete(int fd, int job);
+BSC_EXPORT int bs_delete(int fd, int64_t job);
 BSC_EXPORT int bs_reserve(int fd, BSJ **job);
-BSC_EXPORT int bs_reserve_with_timeout(int fd, int ttl, BSJ **job);
-BSC_EXPORT int bs_release(int fd, int id, int priority, int delay);
-BSC_EXPORT int bs_bury(int fd, int id, int priority);
-BSC_EXPORT int bs_touch(int fd, int id);
-BSC_EXPORT int bs_peek(int fd, int id, BSJ **job);
+BSC_EXPORT int bs_reserve_with_timeout(int fd, uint32_t ttl, BSJ **job);
+BSC_EXPORT int bs_release(int fd, int64_t id, uint32_t priority, uint32_t delay);
+BSC_EXPORT int bs_bury(int fd, int64_t id, uint32_t priority);
+BSC_EXPORT int bs_touch(int fd, int64_t id);
+BSC_EXPORT int bs_peek(int fd, int64_t id, BSJ **job);
 BSC_EXPORT int bs_peek_ready(int fd, BSJ **job);
 BSC_EXPORT int bs_peek_delayed(int fd, BSJ **job);
 BSC_EXPORT int bs_peek_buried(int fd, BSJ **job);
@@ -98,7 +99,7 @@ BSC_EXPORT int bs_list_tube_used(int fd, char **tube);
 BSC_EXPORT int bs_list_tubes(int fd, char **yaml);
 BSC_EXPORT int bs_list_tubes_watched(int fd, char **yaml);
 BSC_EXPORT int bs_stats(int fd, char **yaml);
-BSC_EXPORT int bs_stats_job(int fd, int id, char **yaml);
+BSC_EXPORT int bs_stats_job(int fd, int64_t id, char **yaml);
 BSC_EXPORT int bs_stats_tube(int fd, char *tube, char **yaml);
 
 #ifdef __cplusplus
