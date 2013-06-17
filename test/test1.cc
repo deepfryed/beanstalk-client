@@ -34,7 +34,7 @@ void setup() {
     // setup message
     for (i = 0; i < lines; i++) {
         for (j = 0; j < 26; j++)
-            large_message[n++] = j + 97;
+          large_message[n++] = (char)(j + 97);
         large_message[n++] = '\n';
     }
 }

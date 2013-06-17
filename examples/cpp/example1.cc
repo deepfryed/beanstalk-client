@@ -12,7 +12,7 @@ int main() {
     assert(client.watch("test"));
     assert(client.ignore("default"));
 
-    int id = client.put("hello");
+    int64_t id = client.put("hello");
     assert(id > 0);
     cout << "put job id: " << id << endl;
 

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <strings.h>
 #include <netinet/tcp.h>
+#include <inttypes.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -49,8 +50,8 @@ const char bs_resp_kicked[]         = "KICKED";
 const char bs_resp_ok[]             = "OK";
 
 const char* bs_status_text(int code) {
-    code = abs(code);
-    return (code > sizeof(bs_status_verbose) / sizeof(char*)) ? 0 : bs_status_verbose[code];
+    unsigned int cindex = (unsigned int) abs(code);
+    return (cindex > sizeof(bs_status_verbose) / sizeof(char*)) ? 0 : bs_status_verbose[cindex];
 }
 
 int bs_resolve_address(char *host, int port, struct sockaddr_in *server) {
@@ -108,8 +109,8 @@ int bs_connect_with_timeout(char *host, int port, float secs) {
     res = connect(fd, (struct sockaddr*)&server, sizeof(server));
     if (res < 0) {
         if (errno == EINPROGRESS) {
-            timeout.tv_sec  = (int)secs;
-            timeout.tv_usec = (secs - (int)secs) * 1000000;
+            timeout.tv_sec  = (long)secs;
+            timeout.tv_usec = (long) ((secs - (float)(timeout.tv_sec)) * 1000000);
 
             FD_ZERO(&fdset);
             FD_SET(fd, &fdset);
@@ -171,7 +172,8 @@ void bs_reset_polling() {
 
 BSM* bs_recv_message(int fd, int expect_data) {
     char *token, *data;
-    ssize_t bytes, data_size, status_size, status_max = 512, expect_data_bytes = 0;
+    size_t bytes, data_size, status_size, status_max = 512, expect_data_bytes = 0;
+    ssize_t ret;
     BSM *message = (BSM*)calloc(1, sizeof(BSM));
     if (!message) return 0;
 
@@ -183,9 +185,12 @@ BSM* bs_recv_message(int fd, int expect_data) {
 
     // poll until ready to read
     if (bs_poll) bs_poll(1, fd);
-    if ((bytes = recv(fd, message->status, status_max - 1, 0)) < 0) {
+    ret = recv(fd, message->status, status_max - 1, 0);
+    if (ret < 0) {
         bs_free_message(message);
         return 0;
+    } else {
+      bytes = (size_t) ret;
     }
 
     token = strstr(message->status, "\r\n");
@@ -195,11 +200,11 @@ BSM* bs_recv_message(int fd, int expect_data) {
     }
 
     *token        = 0;
-    status_size   = token - message->status;
+    status_size   = (size_t) (token - message->status);
 
     if (expect_data) {
         token  = rindex(message->status, ' ');
-        expect_data_bytes = token ? atol(token + 1) : 0;
+        expect_data_bytes = token ? strtoul(token + 1, NULL, 10) : 0;
     }
 
     if (!expect_data || expect_data_bytes == 0)
@@ -226,13 +231,16 @@ BSM* bs_recv_message(int fd, int expect_data) {
     while (1) {
         // poll until ready to read.
         if (bs_poll) bs_poll(1, fd);
-        if ((bytes = recv(fd, data, data_size - message->size, 0)) < 0) {
+        ret = recv(fd, data, data_size - message->size, 0);
+        if (ret < 0) {
             if (bs_poll && DATA_PENDING)
                 continue;
             else {
                 bs_free_message(message);
                 return 0;
             }
+        } else {
+          bytes = (size_t) ret;
         }
 
         // doneski, we have read enough bytes + \r\n
@@ -256,7 +264,7 @@ BSM* bs_recv_message(int fd, int expect_data) {
     return message;
 }
 
-size_t bs_send_message(int fd, char *message, size_t size) {
+ssize_t bs_send_message(int fd, char *message, size_t size) {
     // poll until ready to write.
     if (bs_poll) bs_poll(2, fd);
     return send(fd, message, size, bs_poll ? MSG_DONTWAIT : 0);
@@ -365,14 +373,14 @@ int bs_ignore(int fd, char *tube) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
-    int id;
+int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *data, size_t bytes) {
+    int64_t id;
     BSMP *packet;
     BSM *message;
     char command[1024];
     size_t command_bytes;
 
-    snprintf(command, 1024, "put %d %d %d %lu\r\n", priority, delay, ttr, bytes);
+    snprintf(command, 1024, "put %"PRIu32" %"PRIu32" %"PRIu32" %lu\r\n", priority, delay, ttr, bytes);
 
     command_bytes = strlen(command);
     packet = bs_message_packet_new(command_bytes + bytes + 3);
@@ -387,13 +395,13 @@ int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
     BS_CHECK_MESSAGE(message);
 
     if (BS_STATUS_IS(message->status, bs_resp_inserted)) {
-        id = atoi(message->status + strlen(bs_resp_inserted) + 1);
+      id = strtoll(message->status + strlen(bs_resp_inserted) + 1, NULL, 10);
         bs_free_message(message);
         return id;
     }
 
     if (BS_STATUS_IS(message->status, bs_resp_buried)) {
-        id = atoi(message->status + strlen(bs_resp_buried) + 1);
+      id = strtoll(message->status + strlen(bs_resp_buried) + 1, NULL, 10);
         bs_free_message(message);
         return id;
     }
@@ -404,11 +412,11 @@ int bs_put(int fd, int priority, int delay, int ttr, char *data, size_t bytes) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_delete(int fd, int job) {
+int bs_delete(int fd, int64_t job) {
     BSM *message;
     char command[512];
 
-    snprintf(command, 512, "delete %d\r\n", job);
+    snprintf(command, 512, "delete %"PRId64"\r\n", job);
     BS_SEND(fd, command, strlen(command));
 
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
@@ -437,7 +445,7 @@ int bs_reserve_job(int fd, char *command, BSJ **result) {
             return BS_STATUS_FAIL;
         }
 
-        sscanf(message->status + strlen(bs_resp_reserved) + 1, "%d %lu", &job->id, &job->size);
+        sscanf(message->status + strlen(bs_resp_reserved) + 1, "%"PRId64" %lu", &job->id, &job->size);
         job->data      = message->data;
         message->data  = 0;
         bs_free_message(message);
@@ -459,17 +467,17 @@ int bs_reserve(int fd, BSJ **result) {
     return bs_reserve_job(fd, command, result);
 }
 
-int bs_reserve_with_timeout(int fd, int ttl, BSJ **result) {
+int bs_reserve_with_timeout(int fd, uint32_t ttl, BSJ **result) {
     char command[512];
-    snprintf(command, 512, "reserve-with-timeout %d\r\n", ttl);
+    snprintf(command, 512, "reserve-with-timeout %"PRIu32"\r\n", ttl);
     return bs_reserve_job(fd, command, result);
 }
 
-int bs_release(int fd, int id, int priority, int delay) {
+int bs_release(int fd, int64_t id, uint32_t priority, uint32_t delay) {
     BSM *message;
     char command[512];
 
-    snprintf(command, 512, "release %d %d %d\r\n", id, priority, delay);
+    snprintf(command, 512, "release %"PRId64" %"PRIu32" %"PRIu32"\r\n", id, priority, delay);
     BS_SEND(fd, command, strlen(command));
 
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
@@ -480,11 +488,11 @@ int bs_release(int fd, int id, int priority, int delay) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_bury(int fd, int id, int priority) {
+int bs_bury(int fd, int64_t id, uint32_t priority) {
     BSM *message;
     char command[512];
 
-    snprintf(command, 512, "bury %d %d\r\n", id, priority);
+    snprintf(command, 512, "bury %"PRId64" %"PRIu32"\r\n", id, priority);
     BS_SEND(fd, command, strlen(command));
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
@@ -493,11 +501,11 @@ int bs_bury(int fd, int id, int priority) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_touch(int fd, int id) {
+int bs_touch(int fd, int64_t id) {
     BSM *message;
     char command[512];
 
-    snprintf(command, 512, "touch %d\r\n", id);
+    snprintf(command, 512, "touch %"PRId64"\r\n", id);
     BS_SEND(fd, command, strlen(command));
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
@@ -521,7 +529,7 @@ int bs_peek_job(int fd, char *command, BSJ **result) {
             return BS_STATUS_FAIL;
         }
 
-        sscanf(message->status + strlen(bs_resp_found) + 1, "%d %lu", &job->id, &job->size);
+        sscanf(message->status + strlen(bs_resp_found) + 1, "%"PRId64" %lu", &job->id, &job->size);
         job->data      = message->data;
         message->data  = 0;
         bs_free_message(message);
@@ -533,9 +541,9 @@ int bs_peek_job(int fd, char *command, BSJ **result) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_peek(int fd, int id, BSJ **job) {
+int bs_peek(int fd, int64_t id, BSJ **job) {
     char command[512];
-    snprintf(command, 512, "peek %d\r\n", id);
+    snprintf(command, 512, "peek %"PRId64"\r\n", id);
     return bs_peek_job(fd, command, job);
 }
 
@@ -615,9 +623,9 @@ int bs_stats(int fd, char **yaml) {
     return bs_get_info(fd, command, yaml);
 }
 
-int bs_stats_job(int fd, int id, char **yaml) {
+int bs_stats_job(int fd, int64_t id, char **yaml) {
     char command[128];
-    snprintf(command, 128, "stats-job %d\r\n", id);
+    snprintf(command, 128, "stats-job %"PRId64"\r\n", id);
     return bs_get_info(fd, command, yaml);
 }
 
