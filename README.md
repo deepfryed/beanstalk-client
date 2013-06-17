@@ -97,4 +97,4 @@ int main() {
 
 ## License
 
-[Creative Commons Attribution - CC BY](http://creativecommons.org/licenses/by/3.0)
+BSD
