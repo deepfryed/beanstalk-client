@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <strings.h>
 #include <netinet/tcp.h>
+#include <poll.h>
 
 #define BS_STATUS_IS(message, code) strncmp(message, code, strlen(code)) == 0
 
@@ -94,9 +95,7 @@ int bs_connect_with_timeout(char *host, int port, float secs) {
     struct sockaddr_in server;
     int fd, res, option, state = 1;
     socklen_t option_length;
-
-    struct timeval timeout;
-    fd_set fdset;
+    struct pollfd pfd;
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0 || bs_resolve_address(host, port, &server) < 0)
@@ -108,13 +107,11 @@ int bs_connect_with_timeout(char *host, int port, float secs) {
     res = connect(fd, (struct sockaddr*)&server, sizeof(server));
     if (res < 0) {
         if (errno == EINPROGRESS) {
-            timeout.tv_sec  = (int)secs;
-            timeout.tv_usec = (secs - (int)secs) * 1000000;
+            // Init poll structure
+            pfd.fd = fd;
+            pfd.events = POLLOUT;
 
-            FD_ZERO(&fdset);
-            FD_SET(fd, &fdset);
-
-            if (select(fd + 1, NULL, &fdset, NULL, &timeout) > 0) {
+            if (poll(&pfd, 1, (int)(secs*1000)) > 0) {
                 option_length = sizeof(int);
                 getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)(&option), &option_length);
                 if (option) {
