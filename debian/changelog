@@ -1,0 +1,5 @@
+beanstalk-client (1.0.0) lucid; urgency=low
+
+  * Initial release.
+
+ -- Pranay Kanwar <pranay.kanwar@gmail.com>  Sun, 23 Jun 2013 10:59:45 +0530

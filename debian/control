@@ -1,0 +1,37 @@
+Source: beanstalk-client
+Section: libs
+Priority: optional
+Maintainer: deepfryed <deepfryed@gmail.com>
+Build-Depends: debhelper (>= 7.0.50), pkg-config
+Standards-Version: 3.9.3
+Homepage: https://github.com/deepfryed/beanstalk-client
+Vcs-git: https://github.com/deepfryed/beanstalk-client.git
+Vcs-Browser: https://github.com/deepfryed/beanstalk-client
+
+Package: libbeanstalk1
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: C/C++ beanstalkd client library (shared library)
+ C/C++ beanstalkd client that is blocking by default.
+ .
+ This package contains the beanstalkd client shared library.
+
+Package: libbeanstalk-dev
+Architecture: any
+Section: libdevel
+Depends: libbeanstalk1 (= ${binary:Version}), ${misc:Depends}
+Description: C/C++ beanstalkd client library (development libraries and header files)
+ C/C++ beanstalkd client that is blocking by default.
+ .
+ This package contains the beanstalkd client development libraries and header
+ files.
+
+Package: libbeanstalk-dbg
+Architecture: any
+Priority: extra
+Section: debug
+Depends: libbeanstalk1 (= ${binary:Version}), ${misc:Depends}
+Description: C/C++ beanstalkd client library (debugging symbols)
+ C/C++ beanstalkd client that is blocking by default.
+ .
+ This package contains the debugging synmbols for the beanstalkd client library.

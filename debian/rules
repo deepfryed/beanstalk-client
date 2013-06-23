@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_strip:
+	dh_strip --dbg-package=libbeanstalk-dbg
+
+override_dh_auto_test:
+
+.PHONY: override_dh_strip

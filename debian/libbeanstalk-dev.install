@@ -1,0 +1,4 @@
+usr/include/*
+usr/lib/libbeanstalk.a*
+usr/lib/libbeanstalk.so
+usr/lib/pkgconfig/libbeanstalk.pc
