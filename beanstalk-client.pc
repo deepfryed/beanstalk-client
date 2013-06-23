@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libbeanstalk
+Description: C/C++ beanstalkd client library
+Version: @VERSION@
+Libs: -L${libdir} -lbeanstalk
+Cflags: -I${includedir}

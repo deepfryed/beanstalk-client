@@ -6,6 +6,7 @@ SOURCES3    := $(wildcard examples/cpp/*.cc)
 TESTS       := $(SOURCES1:%.cc=%)
 CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
+DESTDIR      = /
 
 # $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
 VERSION      = 1.0.0
@@ -55,7 +56,7 @@ $(STATICLIB): beanstalk.o beanstalkcpp.o
 	ar -cq $@ $^
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
-	$(CPP) -shared -o $(SHAREDLIB) beanstalk.o beanstalkcpp.o
+	$(CPP) -shared -Wl,-soname,libbeanstalk.so.1 -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
 
 beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
@@ -64,20 +65,23 @@ beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: $(SHAREDLIB) $(STATICLIB)
-	cp beanstalk.h /usr/include
-	cp beanstalk.hpp /usr/include
-	cp $(SHAREDLIB) /usr/lib/$(SHAREDLIB).$(VERSION)
-	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB).1
-	ln $(LNOPTS) /usr/lib/$(SHAREDLIB).$(VERSION) /usr/lib/$(SHAREDLIB)
-	cp $(STATICLIB) /usr/lib/$(STATICLIB).$(VERSION)
-	ln $(LNOPTS) /usr/lib/$(STATICLIB).$(VERSION) /usr/lib/$(STATICLIB).1
-	ln $(LNOPTS) /usr/lib/$(STATICLIB).$(VERSION) /usr/lib/$(STATICLIB)
+	mkdir -p $(DESTDIR)/usr/include $(DESTDIR)/usr/lib $(DESTDIR)/usr/lib/pkgconfig
+	cp beanstalk.h $(DESTDIR)/usr/include
+	cp beanstalk.hpp $(DESTDIR)/usr/include
+	cp $(SHAREDLIB) $(DESTDIR)/usr/lib/$(SHAREDLIB).$(VERSION)
+	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(SHAREDLIB).1
+	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(SHAREDLIB)
+	cp $(STATICLIB) $(DESTDIR)/usr/lib/$(STATICLIB).$(VERSION)
+	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB).1
+	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB)
+	cp beanstalk-client.pc $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
+	sed -i 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
 
 uninstall:
-	rm -f /usr/include/beanstalk.h
-	rm -f /usr/include/beanstalk.hpp
-	rm -f /usr/lib/$(SHAREDLIB)*
-	rm -f /usr/lib/$(STATICLIB)*
+	rm -f $(DESTDIR)usr/include/beanstalk.h
+	rm -f $(DESTDIR)usr/include/beanstalk.hpp
+	rm -f $(DESTDIR)usr/lib/$(SHAREDLIB)*
+	rm -f $(DESTDIR)usr/lib/$(STATICLIB)*
 
 clean:
 	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/**/*.o examples/**/example?
