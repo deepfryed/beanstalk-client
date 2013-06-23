@@ -1,4 +1,4 @@
-beanstalk-client (1.0.0) experimental; urgency=low
+beanstalk-client (1.0.0) lucid; urgency=low
 
   * Initial release.
 
