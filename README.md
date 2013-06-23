@@ -95,6 +95,11 @@ int main() {
 }
 ```
 
+
+## Packages
+
+* [Ubuntu PPA](https://launchpad.net/~r4um/+archive/ppa)
+
 ## License
 
 BSD
