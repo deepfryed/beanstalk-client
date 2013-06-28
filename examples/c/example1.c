@@ -7,6 +7,11 @@ int main() {
     BSJ *job;
     char *yaml;
     int64_t id;
+    int a,b,c;
+
+    bs_version(&a, &b, &c);
+    printf("beanstalk-client version %d.%d.%d\n", a,b,c);
+
     int socket = bs_connect("127.0.0.1", 11300);
 
     assert(socket != BS_STATUS_FAIL);

@@ -51,6 +51,7 @@ namespace Beanstalk {
             void connect(std::string host, int port, float timeout_secs = 0);
             void reconnect();
             bool disconnect();
+            void version(int *major, int *minor, int *patch);
             std::string list_tube_used();
             info_list_t list_tubes();
             info_list_t list_tubes_watched();
