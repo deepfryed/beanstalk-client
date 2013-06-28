@@ -631,3 +631,10 @@ int bs_stats_tube(int fd, char *tube, char **yaml) {
     snprintf(command, 512, "stats-tube %s\r\n", tube);
     return bs_get_info(fd, command, yaml);
 }
+
+void bs_version(int *major, int *minor, int *patch)
+{
+    *major = BS_MAJOR_VERSION;
+    *minor = BS_MINOR_VERSION;
+    *patch = BS_PATCH_VERSION;
+}

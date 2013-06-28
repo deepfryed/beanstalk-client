@@ -99,6 +99,10 @@ namespace Beanstalk {
         return false;
     }
 
+    void Client::version(int *major, int *minor, int *patch) {
+        bs_version(major, minor, patch);
+    }
+
     void Client::reconnect() {
         disconnect();
         connect(host, port, timeout_secs);
