@@ -13,7 +13,7 @@
 #include <sys/fcntl.h>
 
 #define BS_MAJOR_VERSION  1
-#define BS_MINOR_VERSION  0
+#define BS_MINOR_VERSION  1
 #define BS_PATCH_VERSION  0
 
 #define BS_STATUS_OK             0
@@ -65,6 +65,9 @@ typedef int (*bs_poll_function)(int rw, int fd);
 #       define BSC_EXPORT
 #   endif
 #endif
+
+// export version
+BSC_EXPORT void bs_version(int *major, int *minor, int *patch);
 
 // polling setup
 BSC_EXPORT void bs_start_polling(bs_poll_function f);
