@@ -13,9 +13,11 @@ VERSION      = 1.1.0
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
+LINKER       = -shared -Wl,-dylib_install_name,$(SHAREDLIB).1
 LNOPTS       = -sf
 else
 SHAREDLIB    = libbeanstalk.so
+LINKER       = -shared -Wl,-soname,$(SHAREDLIB).1
 LNOPTS       = -sfT
 endif
 
@@ -56,7 +58,7 @@ $(STATICLIB): beanstalk.o beanstalkcpp.o
 	ar -cq $@ $^
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
-	$(CPP) -shared -Wl,-soname,libbeanstalk.so.1 -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
+	$(CPP) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
 
 beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
@@ -75,7 +77,7 @@ install: $(SHAREDLIB) $(STATICLIB)
 	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB).1
 	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB)
 	cp beanstalk-client.pc $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
-	sed -i 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
+	sed -i .bak 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
 
 uninstall:
 	rm -f $(DESTDIR)usr/include/beanstalk.h
