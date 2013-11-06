@@ -1,3 +1,9 @@
+beanstalk-client (1.2.0) precise; urgency=low
+
+  * Added Beanstalk::Client::is_connected()
+
+ -- Pranay Kanwar <pranay.kanwar@gmail.com>  Wed, 06 Nov 2013 16:22:38 +0530
+
 beanstalk-client (1.1.0) lucid; urgency=low
 
   * Add bs_version function to expose library version.
