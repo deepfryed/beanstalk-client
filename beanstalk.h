@@ -13,7 +13,7 @@
 #include <sys/fcntl.h>
 
 #define BS_MAJOR_VERSION  1
-#define BS_MINOR_VERSION  1
+#define BS_MINOR_VERSION  2
 #define BS_PATCH_VERSION  0
 
 #define BS_STATUS_OK             0

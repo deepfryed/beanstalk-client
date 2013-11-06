@@ -52,6 +52,7 @@ namespace Beanstalk {
             void reconnect();
             bool disconnect();
             void version(int *major, int *minor, int *patch);
+            bool is_connected();
             std::string list_tube_used();
             info_list_t list_tubes();
             info_list_t list_tubes_watched();

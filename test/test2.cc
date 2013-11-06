@@ -13,8 +13,10 @@ using namespace Beanstalk;
 TEST(Connection, Connect) {
     Client client("127.0.0.1", 11300);
     ASSERT_TRUE(client.ping());
+    ASSERT_TRUE(client.is_connected());
     ASSERT_TRUE(client.disconnect());
     ASSERT_FALSE(client.disconnect());
+    ASSERT_FALSE(client.is_connected());
 }
 
 TEST(Connection, Reconnect) {

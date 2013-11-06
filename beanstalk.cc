@@ -62,7 +62,9 @@ namespace Beanstalk {
     /* end helpers */
 
     Client::~Client() {
-        bs_disconnect(handle);
+        if (handle > 0)
+          bs_disconnect(handle);
+        handle = -1;
     }
 
     Client::Client() {
@@ -89,6 +91,10 @@ namespace Beanstalk {
         handle = secs > 0 ? bs_connect_with_timeout((char *)host.c_str(), port, secs) : bs_connect((char*)host.c_str(), port);
         if (handle < 0)
             throw runtime_error("unable to connect to beanstalkd at " + host);
+    }
+
+    bool Client::is_connected() {
+      return handle > 0;
     }
 
     bool Client::disconnect() {

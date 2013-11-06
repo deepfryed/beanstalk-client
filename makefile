@@ -9,7 +9,7 @@ CPPEXAMPLES := $(SOURCES3:%.cc=%)
 DESTDIR      = /
 
 # $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
-VERSION      = 1.1.0
+VERSION      = 1.2.0
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
@@ -77,7 +77,7 @@ install: $(SHAREDLIB) $(STATICLIB)
 	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB).1
 	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB)
 	cp beanstalk-client.pc $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
-	sed -i .bak 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
+	sed -i -e 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
 
 uninstall:
 	rm -f $(DESTDIR)usr/include/beanstalk.h

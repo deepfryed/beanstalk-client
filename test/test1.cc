@@ -133,7 +133,7 @@ TEST(POLL, SELECT) {
 }
 
 int main(int argc, char *argv[]) {
-    int rc;
+    int rc = 0;
     testing::InitGoogleTest(&argc, argv);
     setup();
     rc = RUN_ALL_TESTS();
