@@ -86,4 +86,4 @@ uninstall:
 	rm -f $(DESTDIR)usr/lib/$(STATICLIB)*
 
 clean:
-	rm -f *.o *.so *.so.* test/test[0-9] test/*.o examples/**/*.o examples/**/example?
+	rm -f *.o *.so *.so.* $(STATICLIB) test/test[0-9] test/*.o examples/**/*.o examples/**/example?
