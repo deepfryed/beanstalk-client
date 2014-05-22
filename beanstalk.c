@@ -385,8 +385,13 @@ int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *da
     bs_message_packet_append(packet, data, bytes);
     bs_message_packet_append(packet, "\r\n", 2);
 
-    BS_SEND(fd, packet->data, packet->offset);
-    bs_message_packet_free(packet);
+	// Can't use BS_SEND here, allocated memory needs to 
+	// be cleared on error
+	int ret_code = bs_send_message(fd, packet->data, packet->offset);
+	bs_message_packet_free(packet);
+	if (ret_code <0) {
+	    return BS_STATUS_FAIL;
+	}
 
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
     BS_CHECK_MESSAGE(message);
