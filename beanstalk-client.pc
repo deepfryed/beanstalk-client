@@ -1,7 +1,7 @@
-prefix=/usr
+prefix=@prefix@
 exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
+libdir=@libdir@
+includedir=@includedir@
 
 Name: libbeanstalk
 Description: C/C++ beanstalkd client library

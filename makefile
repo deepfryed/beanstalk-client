@@ -7,6 +7,10 @@ TESTS       := $(SOURCES1:%.cc=%)
 CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
 DESTDIR      = /
+PREFIX       = /usr/
+INCLUDEDIR   = $(PREFIX)/include/
+LIBDIR       = $(PREFIX)/lib/
+PKGCONFIGDIR = $(LIBDIR)/pkgconfig/
 
 # $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
 VERSION      = 1.2.0
@@ -67,23 +71,32 @@ beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: $(SHAREDLIB) $(STATICLIB)
-	mkdir -p $(DESTDIR)/usr/include $(DESTDIR)/usr/lib $(DESTDIR)/usr/lib/pkgconfig
-	cp beanstalk.h $(DESTDIR)/usr/include
-	cp beanstalk.hpp $(DESTDIR)/usr/include
-	cp $(SHAREDLIB) $(DESTDIR)/usr/lib/$(SHAREDLIB).$(VERSION)
-	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(SHAREDLIB).1
-	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(SHAREDLIB)
-	cp $(STATICLIB) $(DESTDIR)/usr/lib/$(STATICLIB).$(VERSION)
-	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB).1
-	cd $(DESTDIR)/usr/lib && ln $(LNOPTS) $(STATICLIB).$(VERSION) $(STATICLIB)
-	cp beanstalk-client.pc $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
-	sed -i -e 's/@VERSION@/$(VERSION)/' $(DESTDIR)/usr/lib/pkgconfig/libbeanstalk.pc
+	install -d $(DESTDIR)$(INCLUDEDIR)
+	install beanstalk.h $(DESTDIR)$(INCLUDEDIR)
+	install beanstalk.hpp $(DESTDIR)$(INCLUDEDIR)
+
+	install -d $(DESTDIR)$(LIBDIR)
+	install -m 0644 $(SHAREDLIB) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).$(VERSION)
+	ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).1
+	ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB)
+
+	install -m 0644 $(STATICLIB) $(DESTDIR)$(LIBDIR)/$(STATICLIB).$(VERSION)
+	ln $(LNOPTS) $(STATICLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(STATICLIB).1
+	ln $(LNOPTS) $(STATICLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(STATICLIB)
+
+	install -d $(DESTDIR)$(PKGCONFIGDIR)
+	install beanstalk-client.pc $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	sed -i -e 's/@VERSION@/$(VERSION)/' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	sed -i -e 's,@prefix@,$(PREFIX),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	sed -i -e 's,@libdir@,$(LIBDIR),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	sed -i -e 's,@includedir@,$(INCLUDEDIR),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 
 uninstall:
-	rm -f $(DESTDIR)usr/include/beanstalk.h
-	rm -f $(DESTDIR)usr/include/beanstalk.hpp
-	rm -f $(DESTDIR)usr/lib/$(SHAREDLIB)*
-	rm -f $(DESTDIR)usr/lib/$(STATICLIB)*
+	rm -f $(DESTDIR)$(INCLUDEDIR)/beanstalk.h
+	rm -f $(DESTDIR)$(INCLUDEDIR)/beanstalk.hpp
+	rm -f $(DESTDIR)$(LIBDIR)$(SHAREDLIB)*
+	rm -f $(DESTDIR)$(LIBDIR)$(STATICLIB)*
+	rm -f $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 
 clean:
 	rm -f *.o *.so *.so.* $(STATICLIB) test/test[0-9] test/*.o examples/**/*.o examples/**/example?
