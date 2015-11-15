@@ -7,13 +7,12 @@ TESTS       := $(SOURCES1:%.cc=%)
 CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
 DESTDIR      = /
-PREFIX       = /usr/
+PREFIX       = usr
 INCLUDEDIR   = $(PREFIX)/include/
 LIBDIR       = $(PREFIX)/lib/
 PKGCONFIGDIR = $(LIBDIR)/pkgconfig/
 
-# $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
-VERSION      = 1.2.0
+VERSION      = $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
