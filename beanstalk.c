@@ -55,7 +55,7 @@ const char* bs_status_text(int code) {
     return (cindex > sizeof(bs_status_verbose) / sizeof(char*)) ? 0 : bs_status_verbose[cindex];
 }
 
-int bs_resolve_address(char *host, int port, struct sockaddr_in *server) {
+int bs_resolve_address(const char *host, int port, struct sockaddr_in *server) {
     char service[64];
     struct addrinfo *addr, *rec;
 
@@ -74,7 +74,7 @@ int bs_resolve_address(char *host, int port, struct sockaddr_in *server) {
     return BS_STATUS_OK;
 }
 
-int bs_connect(char *host, int port) {
+int bs_connect(const char *host, int port) {
     int fd, state = 1;
     struct sockaddr_in server;
 
@@ -92,7 +92,7 @@ int bs_connect(char *host, int port) {
     return fd;
 }
 
-int bs_connect_with_timeout(char *host, int port, float secs) {
+int bs_connect_with_timeout(const char *host, int port, float secs) {
     struct sockaddr_in server;
     int fd, res, option, state = 1;
     socklen_t option_length;
@@ -286,7 +286,7 @@ BSMP* bs_message_packet_new(size_t bytes) {
     return packet;
 }
 
-void bs_message_packet_append(BSMP *packet, char *data, size_t bytes) {
+void bs_message_packet_append(BSMP *packet, const char *data, size_t bytes) {
     if (packet->offset + bytes > packet->size) {
         packet->data = (char*)realloc(packet->data, packet->size + bytes);
         assert(packet->data);
@@ -331,9 +331,9 @@ void bs_message_packet_free(BSMP *packet) {
     return BS_STATUS_FAIL;                                  \
 }
 
-int bs_use(int fd, char *tube) {
+int bs_use(int fd, const char *tube) {
     BSM *message;
-    char command[1024];
+    char command[1024] = {0};
 
     snprintf(command, 1024, "use %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
@@ -344,9 +344,9 @@ int bs_use(int fd, char *tube) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_watch(int fd, char *tube) {
+int bs_watch(int fd, const char *tube) {
     BSM *message;
-    char command[1024];
+    char command[1024] = {0};
 
     snprintf(command, 1024, "watch %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
@@ -357,9 +357,9 @@ int bs_watch(int fd, char *tube) {
     BS_RETURN_INVALID(message);
 }
 
-int bs_ignore(int fd, char *tube) {
+int bs_ignore(int fd, const char *tube) {
     BSM *message;
-    char command[1024];
+    char command[1024] = {0};
 
     snprintf(command, 1024, "ignore %s\r\n", tube);
     BS_SEND(fd, command, strlen(command));
@@ -370,11 +370,11 @@ int bs_ignore(int fd, char *tube) {
     BS_RETURN_INVALID(message);
 }
 
-int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *data, size_t bytes) {
+int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, const char *data, size_t bytes) {
     int64_t id;
     BSMP *packet;
     BSM *message;
-    char command[1024];
+    char command[1024] = {0};
     size_t command_bytes;
 
     snprintf(command, 1024, "put %"PRIu32" %"PRIu32" %"PRIu32" %lu\r\n", priority, delay, ttr, bytes);
@@ -416,7 +416,7 @@ int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *da
 
 int bs_delete(int fd, int64_t job) {
     BSM *message;
-    char command[512];
+    char command[512] = {0};
 
     snprintf(command, 512, "delete %"PRId64"\r\n", job);
     BS_SEND(fd, command, strlen(command));
@@ -470,14 +470,14 @@ int bs_reserve(int fd, BSJ **result) {
 }
 
 int bs_reserve_with_timeout(int fd, uint32_t ttl, BSJ **result) {
-    char command[512];
+    char command[512] = {0};
     snprintf(command, 512, "reserve-with-timeout %"PRIu32"\r\n", ttl);
     return bs_reserve_job(fd, command, result);
 }
 
 int bs_release(int fd, int64_t id, uint32_t priority, uint32_t delay) {
     BSM *message;
-    char command[512];
+    char command[512] = {0};
 
     snprintf(command, 512, "release %"PRId64" %"PRIu32" %"PRIu32"\r\n", id, priority, delay);
     BS_SEND(fd, command, strlen(command));
@@ -492,7 +492,7 @@ int bs_release(int fd, int64_t id, uint32_t priority, uint32_t delay) {
 
 int bs_bury(int fd, int64_t id, uint32_t priority) {
     BSM *message;
-    char command[512];
+    char command[512] = {0};
 
     snprintf(command, 512, "bury %"PRId64" %"PRIu32"\r\n", id, priority);
     BS_SEND(fd, command, strlen(command));
@@ -505,7 +505,7 @@ int bs_bury(int fd, int64_t id, uint32_t priority) {
 
 int bs_touch(int fd, int64_t id) {
     BSM *message;
-    char command[512];
+    char command[512] = {0};
 
     snprintf(command, 512, "touch %"PRId64"\r\n", id);
     BS_SEND(fd, command, strlen(command));
@@ -544,7 +544,7 @@ int bs_peek_job(int fd, char *command, BSJ **result) {
 }
 
 int bs_peek(int fd, int64_t id, BSJ **job) {
-    char command[512];
+    char command[512] = {0};
     snprintf(command, 512, "peek %"PRId64"\r\n", id);
     return bs_peek_job(fd, command, job);
 }
@@ -563,7 +563,7 @@ int bs_peek_buried(int fd, BSJ **job) {
 
 int bs_kick(int fd, int bound) {
     BSM *message;
-    char command[512];
+    char command[512] = {0};
 
     snprintf(command, 512, "kick %d\r\n", bound);
     BS_SEND(fd, command, strlen(command));
@@ -575,7 +575,7 @@ int bs_kick(int fd, int bound) {
 
 int bs_list_tube_used(int fd, char **tube) {
     BSM *message;
-    char command[64];
+    char command[64] = {0};
     snprintf(command, 64, "list-tube-used\r\n");
     BS_SEND(fd, command, strlen(command));
     message = bs_recv_message(fd, BS_MESSAGE_NO_BODY);
@@ -608,31 +608,31 @@ int bs_get_info(int fd, char *command, char **yaml) {
 }
 
 int bs_list_tubes(int fd, char **yaml) {
-    char command[64];
+    char command[64] = {0};
     snprintf(command, 64, "list-tubes\r\n");
     return bs_get_info(fd, command, yaml);
 }
 
 int bs_list_tubes_watched(int fd, char **yaml) {
-    char command[64];
+    char command[64] = {0};
     snprintf(command, 64, "list-tubes-watched\r\n");
     return bs_get_info(fd, command, yaml);
 }
 
 int bs_stats(int fd, char **yaml) {
-    char command[64];
+    char command[64] = {0};
     snprintf(command, 64, "stats\r\n");
     return bs_get_info(fd, command, yaml);
 }
 
 int bs_stats_job(int fd, int64_t id, char **yaml) {
-    char command[128];
+    char command[128] = {0};
     snprintf(command, 128, "stats-job %"PRId64"\r\n", id);
     return bs_get_info(fd, command, yaml);
 }
 
-int bs_stats_tube(int fd, char *tube, char **yaml) {
-    char command[512];
+int bs_stats_tube(int fd, const char *tube, char **yaml) {
+    char command[512] = {0};
     snprintf(command, 512, "stats-tube %s\r\n", tube);
     return bs_get_info(fd, command, yaml);
 }

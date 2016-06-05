@@ -80,17 +80,17 @@ BSC_EXPORT void bs_free_message(BSM* m);
 BSC_EXPORT void bs_free_job(BSJ *job);
 
 // returns socket descriptor or BS_STATUS_FAIL
-BSC_EXPORT int bs_connect(char *host, int port);
-BSC_EXPORT int bs_connect_with_timeout(char *host, int port, float secs);
+BSC_EXPORT int bs_connect(const char *host, int port);
+BSC_EXPORT int bs_connect_with_timeout(const char *host, int port, float secs);
 
 // returns job id or one of the negative failure codes.
-BSC_EXPORT int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, char *data, size_t bytes);
+BSC_EXPORT int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, const char *data, size_t bytes);
 
 // rest return BS_STATUS_OK or one of the failure codes.
 BSC_EXPORT int bs_disconnect(int fd);
-BSC_EXPORT int bs_use(int fd, char *tube);
-BSC_EXPORT int bs_watch(int fd, char *tube);
-BSC_EXPORT int bs_ignore(int fd, char *tube);
+BSC_EXPORT int bs_use(int fd, const char *tube);
+BSC_EXPORT int bs_watch(int fd, const char *tube);
+BSC_EXPORT int bs_ignore(int fd, const char *tube);
 BSC_EXPORT int bs_delete(int fd, int64_t job);
 BSC_EXPORT int bs_reserve(int fd, BSJ **job);
 BSC_EXPORT int bs_reserve_with_timeout(int fd, uint32_t ttl, BSJ **job);
@@ -107,7 +107,7 @@ BSC_EXPORT int bs_list_tubes(int fd, char **yaml);
 BSC_EXPORT int bs_list_tubes_watched(int fd, char **yaml);
 BSC_EXPORT int bs_stats(int fd, char **yaml);
 BSC_EXPORT int bs_stats_job(int fd, int64_t id, char **yaml);
-BSC_EXPORT int bs_stats_tube(int fd, char *tube, char **yaml);
+BSC_EXPORT int bs_stats_tube(int fd, const char *tube, char **yaml);
 
 #ifdef __cplusplus
     }
