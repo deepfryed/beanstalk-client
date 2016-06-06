@@ -124,4 +124,4 @@ int main() {
 
 ## License
 
-BSD
+MIT
