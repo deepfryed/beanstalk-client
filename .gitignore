@@ -1,6 +1,6 @@
 *.o
 *.a
-*.so
+*.so*
 *.dylib
 *.dSYM
 examples/**/*
@@ -13,3 +13,4 @@ benchmark
 siege*
 .cproject
 .project
+

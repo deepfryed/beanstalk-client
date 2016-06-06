@@ -62,6 +62,7 @@ $(STATICLIB): beanstalk.o beanstalkcpp.o
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
 	$(CPP) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
+	ln -s $(SHAREDLIB) $(SHAREDLIB).1
 
 beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
