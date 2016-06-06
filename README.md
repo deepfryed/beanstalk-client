@@ -16,6 +16,20 @@ The tests need [google test](http://code.google.com/p/googletest) installed (lib
 
 ```
 sudo apt-get install libgtest-dev
+```
+
+Since the package does not come with a pre-build library, you need to build and install it.
+
+```
+cd /usr/src/libgtest
+sudo cmake .
+sudo make
+sudo cp libgtest.a /usr/local/lib
+```
+
+After installing libgtest, you can build the test suite and run it.
+
+```
 make test
 ```
 
@@ -99,6 +113,14 @@ int main() {
 ## Packages
 
 * [Ubuntu PPA](https://launchpad.net/~r4um/+archive/ppa)
+
+## Contributing
+
+1. Fork / clone the repo.
+2. Make your changes.
+3. Make sure to add a test for any code changes.
+4. Make sure the tests pass.
+5. Send a pull request or a patch with explanation.
 
 ## License
 
