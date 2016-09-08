@@ -2,10 +2,12 @@
 
 #include "beanstalk.h"
 #include <string>
+#include <exception>
 #include <vector>
 #include <map>
 
 namespace Beanstalk {
+  
     typedef std::vector<std::string> info_list_t;
     typedef std::map<std::string, std::string> info_hash_t;
 
@@ -22,6 +24,15 @@ namespace Beanstalk {
             std::string _body;
     };
 
+    
+    class BeanstalkConnectException: public std::exception
+    {
+      virtual const char* what() const throw()
+      {
+        return "Exception connecting to Beanstalk";
+      }
+    } ;
+    
     class Client {
         public:
             ~Client();
