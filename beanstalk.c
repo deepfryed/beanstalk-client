@@ -264,7 +264,7 @@ BSM* bs_recv_message(int fd, int expect_data) {
 ssize_t bs_send_message(int fd, char *message, size_t size) {
     // poll until ready to write.
     if (bs_poll) bs_poll(2, fd);
-    return send(fd, message, size, bs_poll ? MSG_DONTWAIT : 0);
+    return send(fd, message, size, bs_poll ? MSG_DONTWAIT|MSG_NOSIGNAL : MSG_NOSIGNAL);
 }
 
 typedef struct bs_message_packet {
