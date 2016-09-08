@@ -139,7 +139,7 @@ namespace Beanstalk {
         int response_code = bs_delete(_handle, (int64_t)job.id());
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -148,7 +148,7 @@ namespace Beanstalk {
         int response_code = bs_delete(_handle, id);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -163,7 +163,7 @@ namespace Beanstalk {
         else if (response_code == BS_STATUS_FAIL)
         {
           // Failed connecting to beanstalk, throw an exception
-          throw BeanstalkConnectException();
+          throw ConnectException();
         }
         
         return false;
@@ -179,7 +179,7 @@ namespace Beanstalk {
         else if (response_code == BS_STATUS_FAIL)
         {
           // Failed connecting to beanstalk, throw an exception
-          throw BeanstalkConnectException();
+          throw ConnectException();
         }
         return false;
     }
@@ -188,7 +188,7 @@ namespace Beanstalk {
         int response_code = bs_release(_handle, (int64_t)job.id(), priority, delay);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -197,7 +197,7 @@ namespace Beanstalk {
         int response_code = bs_release(_handle, id, priority, delay);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -206,7 +206,7 @@ namespace Beanstalk {
         int response_code = bs_bury(_handle, (int64_t)job.id(), priority);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -215,7 +215,7 @@ namespace Beanstalk {
         int response_code = bs_bury(_handle, id, priority);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -224,7 +224,7 @@ namespace Beanstalk {
         int response_code = bs_touch(_handle, (int64_t)job.id());
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }
@@ -233,7 +233,7 @@ namespace Beanstalk {
         int response_code = bs_touch(_handle, id);
 
         if (response_code == BS_STATUS_FAIL)
-          throw BeanstalkConnectException();
+          throw ConnectException();
         
         return response_code == BS_STATUS_OK;
     }

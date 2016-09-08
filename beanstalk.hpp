@@ -25,7 +25,7 @@ namespace Beanstalk {
     };
 
     
-    class BeanstalkConnectException: public std::exception
+    class ConnectException: public std::exception
     {
       virtual const char* what() const throw()
       {
