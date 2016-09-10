@@ -385,7 +385,7 @@ int64_t bs_put(int fd, uint32_t priority, uint32_t delay, uint32_t ttr, const ch
     bs_message_packet_append(packet, data, bytes);
     bs_message_packet_append(packet, "\r\n", 2);
 
-    // Can't use BS_SEND here, allocated memory needs to 
+    // Can't use BS_SEND here, allocated memory needs to
     // be cleared on error
     int ret_code = bs_send_message(fd, packet->data, packet->offset);
     bs_message_packet_free(packet);
@@ -637,8 +637,7 @@ int bs_stats_tube(int fd, const char *tube, char **yaml) {
     return bs_get_info(fd, command, yaml);
 }
 
-void bs_version(int *major, int *minor, int *patch)
-{
+void bs_version(int *major, int *minor, int *patch) {
     *major = BS_MAJOR_VERSION;
     *minor = BS_MINOR_VERSION;
     *patch = BS_PATCH_VERSION;

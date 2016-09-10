@@ -81,7 +81,7 @@ namespace Beanstalk {
 
     void Client::connect(const std::string& host, int port, float secs) {
         if (_handle > 0)
-            throw runtime_error("already connected to beanstalkd at " + _host);
+            throw ConnectException("already connected to beanstalkd at " + _host);
 
         _host         = host;
         _port         = port;
@@ -89,7 +89,7 @@ namespace Beanstalk {
 
         _handle = secs > 0 ? bs_connect_with_timeout((char *)_host.c_str(), _port, secs) : bs_connect((char*)host.c_str(), port);
         if (_handle < 0)
-            throw runtime_error("unable to connect to beanstalkd at " + _host);
+            throw ConnectException("unable to connect to beanstalkd at " + _host);
     }
 
     bool Client::is_connected() {
@@ -140,45 +140,42 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
-    bool Client::del(int64_t id) {       
+    bool Client::del(int64_t id) {
         int response_code = bs_delete(_handle, id);
-
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
     bool Client::reserve(Job &job) {
         BSJ *bsj;
         int response_code = bs_reserve(_handle, &bsj);
+
         if (response_code == BS_STATUS_OK) {
             job = bsj;
             return true;
         }
-        else if (response_code == BS_STATUS_FAIL)
-        {
-          // Failed connecting to beanstalk, throw an exception
+        else if (response_code == BS_STATUS_FAIL) {
           throw ConnectException();
         }
-        
+
         return false;
     }
 
     bool Client::reserve(Job &job, uint32_t timeout) {
         BSJ *bsj;
         int response_code = bs_reserve_with_timeout(_handle, timeout, &bsj);
+
         if (response_code == BS_STATUS_OK) {
             job = bsj;
             return true;
         }
-        else if (response_code == BS_STATUS_FAIL)
-        {
-          // Failed connecting to beanstalk, throw an exception
+        else if (response_code == BS_STATUS_FAIL) {
           throw ConnectException();
         }
         return false;
@@ -189,7 +186,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
@@ -198,7 +195,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
@@ -207,7 +204,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
@@ -216,7 +213,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
@@ -225,7 +222,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 
@@ -234,7 +231,7 @@ namespace Beanstalk {
 
         if (response_code == BS_STATUS_FAIL)
           throw ConnectException();
-        
+
         return response_code == BS_STATUS_OK;
     }
 

@@ -2,7 +2,7 @@
 
 #include "beanstalk.h"
 #include <string>
-#include <exception>
+#include <stdexcept>
 #include <vector>
 #include <map>
 
@@ -24,14 +24,11 @@ namespace Beanstalk {
             std::string _body;
     };
 
-    
-    class ConnectException: public std::exception
-    {
-      virtual const char* what() const throw()
-      {
-        return "Exception connecting to Beanstalk";
-      }
-    } ;
+    class ConnectException: public std::runtime_error {
+      public:
+        ConnectException(const std::string message): std::runtime_error(message) {}
+        ConnectException(void): std::runtime_error("Unable to connect to Beanstalk server") {}
+    };
     
     class Client {
         public:
