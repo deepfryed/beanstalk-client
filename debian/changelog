@@ -1,3 +1,10 @@
+beanstalk-client (1.3.0) precise; urgency=low
+
+  * Fix bs_put memory free error.
+  * throw Beanstalk::ConnectException on connect errors.
+
+ -- Bharanee Rathna <deepfryed@gmail.com> Sat 10, Sep 2016 16:16:00 +1000
+
 beanstalk-client (1.2.0) precise; urgency=low
 
   * Added Beanstalk::Client::is_connected()
