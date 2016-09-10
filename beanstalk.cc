@@ -136,53 +136,106 @@ namespace Beanstalk {
     }
 
     bool Client::del(const Job &job) {
-        return bs_delete(_handle, (int64_t)job.id()) == BS_STATUS_OK;
+        int response_code = bs_delete(_handle, (int64_t)job.id());
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
-    bool Client::del(int64_t id) {
-        return bs_delete(_handle, id) == BS_STATUS_OK;
+    bool Client::del(int64_t id) {       
+        int response_code = bs_delete(_handle, id);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::reserve(Job &job) {
         BSJ *bsj;
-        if (bs_reserve(_handle, &bsj) == BS_STATUS_OK) {
+        int response_code = bs_reserve(_handle, &bsj);
+        if (response_code == BS_STATUS_OK) {
             job = bsj;
             return true;
         }
+        else if (response_code == BS_STATUS_FAIL)
+        {
+          // Failed connecting to beanstalk, throw an exception
+          throw ConnectException();
+        }
+        
         return false;
     }
 
     bool Client::reserve(Job &job, uint32_t timeout) {
         BSJ *bsj;
-        if (bs_reserve_with_timeout(_handle, timeout, &bsj) == BS_STATUS_OK) {
+        int response_code = bs_reserve_with_timeout(_handle, timeout, &bsj);
+        if (response_code == BS_STATUS_OK) {
             job = bsj;
             return true;
+        }
+        else if (response_code == BS_STATUS_FAIL)
+        {
+          // Failed connecting to beanstalk, throw an exception
+          throw ConnectException();
         }
         return false;
     }
 
     bool Client::release(const Job &job, uint32_t priority, uint32_t delay) {
-        return bs_release(_handle, (int64_t)job.id(), priority, delay) == BS_STATUS_OK;
+        int response_code = bs_release(_handle, (int64_t)job.id(), priority, delay);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::release(int64_t id, uint32_t priority, uint32_t delay) {
-        return bs_release(_handle, id, priority, delay) == BS_STATUS_OK;
+        int response_code = bs_release(_handle, id, priority, delay);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::bury(const Job &job, uint32_t priority) {
-        return bs_bury(_handle, (int64_t)job.id(), priority) == BS_STATUS_OK;
+        int response_code = bs_bury(_handle, (int64_t)job.id(), priority);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::bury(int64_t id, uint32_t priority) {
-        return bs_bury(_handle, id, priority) == BS_STATUS_OK;
+        int response_code = bs_bury(_handle, id, priority);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::touch(const Job &job) {
-        return bs_touch(_handle, (int64_t)job.id()) == BS_STATUS_OK;
+        int response_code = bs_touch(_handle, (int64_t)job.id());
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::touch(int64_t id) {
-        return bs_touch(_handle, id) == BS_STATUS_OK;
+        int response_code = bs_touch(_handle, id);
+
+        if (response_code == BS_STATUS_FAIL)
+          throw ConnectException();
+        
+        return response_code == BS_STATUS_OK;
     }
 
     bool Client::peek(Job &job, int64_t id) {
