@@ -109,11 +109,6 @@ int main() {
 }
 ```
 
-
-## Packages
-
-* [Ubuntu PPA](https://launchpad.net/~r4um/+archive/ppa)
-
 ## Contributing
 
 1. Fork / clone the repo.
