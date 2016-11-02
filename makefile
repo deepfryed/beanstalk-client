@@ -27,8 +27,8 @@ endif
 STATICLIB    = libbeanstalk.a
 CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
-CC           = gcc
-CPP          = g++
+CC           ?= gcc
+CPP          ?= g++
 
 all: $(CEXAMPLES) $(CPPEXAMPLES) benchmark
 
