@@ -28,7 +28,7 @@ STATICLIB    = libbeanstalk.a
 CFLAGS       = -Wall -Wno-sign-compare -g -I.
 LDFLAGS      = -L. -lbeanstalk
 CC           ?= gcc
-CPP          ?= g++
+CXX          ?= g++
 
 all: $(CEXAMPLES) $(CPPEXAMPLES) benchmark
 
@@ -36,13 +36,13 @@ test: $(TESTS)
 	test/run-all
 
 $(TESTS): test/%:test/%.o $(SHAREDLIB)
-	$(CPP) -o $@ $< $(LDFLAGS) -lgtest -lpthread
+	$(CXX) -o $@ $< $(LDFLAGS) -lgtest -lpthread
 
 test/%.o: test/%.cc
-	$(CPP) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
 benchmark: benchmark.cc $(SHAREDLIB)
-	$(CPP) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
+	$(CXX) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
 	$(CC) -o $@ $< $(LDFLAGS)
@@ -51,17 +51,17 @@ examples/c/%.o: examples/c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
-	$(CPP) -o $@ $< $(LDFLAGS)
+	$(CXX) -o $@ $< $(LDFLAGS)
 
 examples/cpp/%.o: examples/cpp/%.cc
-	$(CPP) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
 $(STATICLIB): beanstalk.o beanstalkcpp.o
 	rm -f $@
 	ar -cq $@ $^
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
-	$(CPP) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
+	$(CXX) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
 	rm -f $(SHAREDLIB).1
 	ln -s $(SHAREDLIB) $(SHAREDLIB).1
 
@@ -69,7 +69,7 @@ beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
 
 beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
-	$(CPP) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
+	$(CXX) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: $(SHAREDLIB) $(STATICLIB)
 	install -d $(DESTDIR)$(INCLUDEDIR)
