@@ -26,6 +26,7 @@ endif
 
 STATICLIB    = libbeanstalk.a
 CFLAGS       = -Wall -Wno-sign-compare -g -I.
+CXXFLAGS     = -std=c++11 $(CFLAGS)
 LDFLAGS      = -L. -lbeanstalk
 CC           ?= gcc
 CXX          ?= g++
@@ -39,10 +40,10 @@ $(TESTS): test/%:test/%.o $(SHAREDLIB)
 	$(CXX) -o $@ $< $(LDFLAGS) -lgtest -lpthread
 
 test/%.o: test/%.cc
-	$(CXX) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 benchmark: benchmark.cc $(SHAREDLIB)
-	$(CXX) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
+	$(CXX) $(CXXFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
 	$(CC) -o $@ $< $(LDFLAGS)
@@ -54,7 +55,7 @@ $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
 	$(CXX) -o $@ $< $(LDFLAGS)
 
 examples/cpp/%.o: examples/cpp/%.cc
-	$(CXX) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(STATICLIB): beanstalk.o beanstalkcpp.o
 	rm -f $@
@@ -69,7 +70,7 @@ beanstalk.o: beanstalk.c beanstalk.h makefile
 	$(CC) $(CFLAGS) -fPIC -c -o beanstalk.o beanstalk.c
 
 beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
-	$(CXX) $(CFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
+	$(CXX) $(CXXFLAGS) -fPIC -c -o beanstalkcpp.o beanstalk.cc
 
 install: $(SHAREDLIB) $(STATICLIB)
 	install -d $(DESTDIR)$(INCLUDEDIR)

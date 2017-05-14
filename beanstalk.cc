@@ -7,23 +7,22 @@ using namespace std;
 
 namespace Beanstalk {
 
-    Job::Job() {
-        _id = 0;
+    Job::Job()
+        : _id(0)
+        , _body() {
     }
 
-    Job::Job(int64_t id, const char *data, size_t size) {
-        _body.assign(data, size);
-        _id = id;
+    Job::Job(int64_t id, const char *data, size_t size)
+        : _id(id)
+        , _body(data, size) {
     }
 
-    Job::Job(BSJ *job) {
+    Job::Job(BSJ *job)
+        : Job() {
         if (job) {
             _body.assign(job->data, job->size);
             _id = job->id;
             bs_free_job(job);
-        }
-        else {
-            _id = 0;
         }
     }
 
@@ -62,34 +61,35 @@ namespace Beanstalk {
     /* end helpers */
 
     Client::~Client() {
-        if (_handle > 0)
-          bs_disconnect(_handle);
-        _handle = -1;
+        disconnect();
     }
 
-    Client::Client() {
-        _handle       = -1;
-        _host         = "";
-        _port         = 0;
-        _timeout_secs = 0;
+    Client::Client()
+        : _handle(-1)
+        , _host()
+        , _port(0)
+        , _timeout_secs(0) {
     }
 
-    Client::Client(const std::string& host, int port, float secs) {
-        _handle       = -1;
+    Client::Client(std::string host, uint16_t port, float secs)
+        : Client() {
         connect(host, port, secs);
     }
 
-    void Client::connect(const std::string& host, int port, float secs) {
+    void Client::connect(const std::string& host, uint16_t port, float secs) {
         if (_handle > 0)
-            throw ConnectException("already connected to beanstalkd at " + _host);
+            throw ConnectException("already connected to beanstalkd at ", _host, _port);
 
         _host         = host;
         _port         = port;
         _timeout_secs = secs;
 
         _handle = secs > 0 ? bs_connect_with_timeout((char *)_host.c_str(), _port, secs) : bs_connect((char*)host.c_str(), port);
-        if (_handle < 0)
-            throw ConnectException("unable to connect to beanstalkd at " + _host);
+        if (_handle < 0) {
+            if (_handle == BS_STATUS_TIMED_OUT)
+                throw TimeoutException("connect");
+            throw ConnectException(_host, _port);
+        }
     }
 
     bool Client::is_connected() {
@@ -106,6 +106,12 @@ namespace Beanstalk {
 
     void Client::version(int *major, int *minor, int *patch) {
         bs_version(major, minor, patch);
+    }
+
+    std::string Client::version() {
+        int major, minor, patch;
+        version(&major, &minor, &patch);
+        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
     }
 
     void Client::reconnect() {
@@ -136,18 +142,13 @@ namespace Beanstalk {
     }
 
     bool Client::del(const Job &job) {
-        int response_code = bs_delete(_handle, (int64_t)job.id());
-
-        if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
-
-        return response_code == BS_STATUS_OK;
+        return del(job.id());
     }
 
     bool Client::del(int64_t id) {
         int response_code = bs_delete(_handle, id);
         if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
+          throw ConnectException(_host, _port);
 
         return response_code == BS_STATUS_OK;
     }
@@ -161,7 +162,7 @@ namespace Beanstalk {
             return true;
         }
         else if (response_code == BS_STATUS_FAIL) {
-          throw ConnectException();
+          throw ConnectException(_host, _port);
         }
 
         return false;
@@ -175,62 +176,50 @@ namespace Beanstalk {
             job = bsj;
             return true;
         }
+        else if (response_code == BS_STATUS_TIMED_OUT) {
+          throw TimeoutException("reserve-with-timeout");
+        }
         else if (response_code == BS_STATUS_FAIL) {
-          throw ConnectException();
+          throw ConnectException(_host, _port);
         }
         return false;
     }
 
     bool Client::release(const Job &job, uint32_t priority, uint32_t delay) {
-        int response_code = bs_release(_handle, (int64_t)job.id(), priority, delay);
-
-        if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
-
-        return response_code == BS_STATUS_OK;
+        return release(job.id(), priority, delay);
     }
 
     bool Client::release(int64_t id, uint32_t priority, uint32_t delay) {
         int response_code = bs_release(_handle, id, priority, delay);
 
         if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
+          throw ConnectException(_host, _port);
 
         return response_code == BS_STATUS_OK;
     }
 
     bool Client::bury(const Job &job, uint32_t priority) {
-        int response_code = bs_bury(_handle, (int64_t)job.id(), priority);
-
-        if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
-
-        return response_code == BS_STATUS_OK;
+        return bury(job.id(), priority);
     }
 
     bool Client::bury(int64_t id, uint32_t priority) {
         int response_code = bs_bury(_handle, id, priority);
 
         if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
+          throw ConnectException(_host, _port);
 
         return response_code == BS_STATUS_OK;
     }
 
     bool Client::touch(const Job &job) {
-        int response_code = bs_touch(_handle, (int64_t)job.id());
-
-        if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
-
-        return response_code == BS_STATUS_OK;
+        return touch(job.id());
     }
 
     bool Client::touch(int64_t id) {
         int response_code = bs_touch(_handle, id);
 
         if (response_code == BS_STATUS_FAIL)
-          throw ConnectException();
+          throw ConnectException(_host, _port);
 
         return response_code == BS_STATUS_OK;
     }
