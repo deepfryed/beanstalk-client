@@ -6,17 +6,31 @@ SOURCES3    := $(wildcard examples/cpp/*.cc)
 TESTS       := $(SOURCES1:%.cc=%)
 CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
+
+ifeq ($(OS), FreeBSD)
+DESTDIR      = /
+PREFIX       = usr/local
+INCLUDEDIR   = $(PREFIX)/include/
+LIBDIR       = $(PREFIX)/lib/
+PKGCONFIGDIR = $(PREFIX)/libdata/pkgconfig/
+else
 DESTDIR      = /
 PREFIX       = usr
 INCLUDEDIR   = $(PREFIX)/include/
 LIBDIR       = $(PREFIX)/lib/
 PKGCONFIGDIR = $(LIBDIR)/pkgconfig/
+endif
 
 VERSION      = $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
 LINKER       = -shared -Wl,-dylib_install_name,$(SHAREDLIB).1
+LNOPTS       = -sf
+endif
+ifeq ($(OS), FreeBSD)
+SHAREDLIB    = libbeanstalk.dylib
+LINKER       = -shared -Wl,-soname,$(SHAREDLIB).1
 LNOPTS       = -sf
 else
 SHAREDLIB    = libbeanstalk.so
