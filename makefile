@@ -39,8 +39,8 @@ LNOPTS       = -sfT
 endif
 
 STATICLIB    = libbeanstalk.a
-CFLAGS       = -Wall -Wno-sign-compare -g -I.
-LDFLAGS      = -L. -lbeanstalk
+CFLAGS       ?= -g
+CFLAGS       += -Wall -Wno-sign-compare -I.
 CC           ?= gcc
 CXX          ?= g++
 
@@ -50,22 +50,22 @@ test: $(TESTS)
 	test/run-all
 
 $(TESTS): test/%:test/%.o $(SHAREDLIB)
-	$(CXX) -o $@ $< $(LDFLAGS) -lgtest -lpthread
+	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk -lgtest -lpthread
 
 test/%.o: test/%.cc
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 benchmark: benchmark.cc $(SHAREDLIB)
-	$(CXX) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
+	$(CXX) $(CFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -L. -lbeanstalk -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
-	$(CC) -o $@ $< $(LDFLAGS)
+	$(CC) -o $@ $< $(LDFLAGS) -L. -lbeanstalk
 
 examples/c/%.o: examples/c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
-	$(CXX) -o $@ $< $(LDFLAGS)
+	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk
 
 examples/cpp/%.o: examples/cpp/%.cc
 	$(CXX) $(CFLAGS) -c -o $@ $<
@@ -75,7 +75,7 @@ $(STATICLIB): beanstalk.o beanstalkcpp.o
 	ar -cq $@ $^
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
-	$(CXX) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
+	$(CXX) $(CFLAGS) $(LINKER) $(LDFLAGS) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
 	rm -f $(SHAREDLIB).1
 	ln -s $(SHAREDLIB) $(SHAREDLIB).1
 
