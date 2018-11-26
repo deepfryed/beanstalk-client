@@ -8,14 +8,14 @@ CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
 
 ifeq ($(OS), FreeBSD)
-DESTDIR      = /
-PREFIX       = usr/local
+DESTDIR      =
+PREFIX       = /usr/local
 INCLUDEDIR   = $(PREFIX)/include/
 LIBDIR       = $(PREFIX)/lib/
 PKGCONFIGDIR = $(PREFIX)/libdata/pkgconfig/
 else
-DESTDIR      = /
-PREFIX       = usr
+DESTDIR      =
+PREFIX       = /usr
 INCLUDEDIR   = $(PREFIX)/include/
 LIBDIR       = $(PREFIX)/lib/
 PKGCONFIGDIR = $(LIBDIR)/pkgconfig/
