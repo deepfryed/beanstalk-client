@@ -87,8 +87,8 @@ beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 
 install: $(SHAREDLIB) $(STATICLIB)
 	install -d $(DESTDIR)$(INCLUDEDIR)
-	install beanstalk.h $(DESTDIR)$(INCLUDEDIR)
-	install beanstalk.hpp $(DESTDIR)$(INCLUDEDIR)
+	install -m 0644 beanstalk.h $(DESTDIR)$(INCLUDEDIR)
+	install -m 0644 beanstalk.hpp $(DESTDIR)$(INCLUDEDIR)
 
 	install -d $(DESTDIR)$(LIBDIR)
 	install -m 0644 $(SHAREDLIB) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).$(VERSION)
@@ -100,7 +100,7 @@ install: $(SHAREDLIB) $(STATICLIB)
 	ln $(LNOPTS) $(STATICLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(STATICLIB)
 
 	install -d $(DESTDIR)$(PKGCONFIGDIR)
-	install beanstalk-client.pc $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	install -m 0644 beanstalk-client.pc $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's/@VERSION@/$(VERSION)/' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's,@prefix@,$(PREFIX),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's,@libdir@,$(LIBDIR),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
