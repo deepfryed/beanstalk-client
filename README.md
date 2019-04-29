@@ -12,23 +12,6 @@ sudo make install
 
 ## Testing
 
-The tests need [google test](http://code.google.com/p/googletest) installed (libgtest-dev on debian based distros).
-
-```
-sudo apt-get install libgtest-dev
-```
-
-Since the package does not come with a pre-build library, you need to build and install it.
-
-```
-cd /usr/src/gtest
-sudo cmake .
-sudo make
-sudo cp libgtest.a /usr/local/lib
-```
-
-After installing libgtest, you can build the test suite and run it.
-
 ```
 make test
 ```
@@ -108,6 +91,10 @@ int main() {
     cout << "deleted job id: " << job.id() << endl;
 }
 ```
+
+## Changelog
+
+See `debian/changelog`
 
 ## Contributing
 

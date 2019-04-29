@@ -50,9 +50,9 @@ test: $(TESTS)
 	test/run-all
 
 $(TESTS): test/%:test/%.o $(SHAREDLIB)
-	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk -lgtest -lpthread
+	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk -lpthread
 
-test/%.o: test/%.cc
+test/%.o: test/%.cc test/test.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 benchmark: benchmark.cc $(SHAREDLIB)
@@ -115,3 +115,5 @@ uninstall:
 
 clean:
 	rm -f *.o *.so *.so.* $(STATICLIB) test/test[0-9] test/*.o examples/**/*.o examples/**/example?
+
+.PHONY: test clean install uninstall

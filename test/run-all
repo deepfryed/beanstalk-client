@@ -1,9 +1,13 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=$(readlink -f $(dirname $0)/..)
+export LD_LIBRARY_PATH=$(dirname $0)/..
 
+failures=0
 for elf in $(/bin/ls -1 test/test*); do
   if [ -x $elf ]; then
     $elf
+    failures=$(($failures + $?))
   fi
 done
+
+exit $failures

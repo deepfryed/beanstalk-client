@@ -3,9 +3,10 @@
 // (c) Bharanee Rathna 2012
 
 #include "beanstalk.h"
-#include "gtest/gtest.h"
+#include "test.h"
 #include <sys/select.h>
 #include <fcntl.h>
+#include <string>
 
 char *large_message;
 int handle, lines = 200, bytes = lines * 27 + 1;
@@ -43,73 +44,81 @@ void teardown() {
     free(large_message);
 }
 
-TEST(Connection, Connect) {
+
+TEST(CONNECTION, CONNECT) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_disconnect(handle), BS_STATUS_OK);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_disconnect(handle), BS_STATUS_OK, "disconnect");
     handle = bs_connect((char*)"127.0.0.1", 1);
-    EXPECT_LT(handle, 0);
+    EXPECT_LT(handle, 0, "disconnect on disconnected handle");
+    return 0;
 }
 
 TEST(TUBE, USE) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_use(handle, (char*)"test"), BS_STATUS_OK);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_use(handle, (char*)"test"), BS_STATUS_OK, "use tube test");
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(TUBE, WATCH) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK, "watch tube test");
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(TUBE, IGNORE) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_watch(handle,  (char*)"test"),    BS_STATUS_OK);
-    EXPECT_EQ(bs_ignore(handle, (char*)"default"), BS_STATUS_OK);
-    EXPECT_EQ(bs_ignore(handle, (char*)"test"),    BS_STATUS_FAIL);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_watch(handle,  (char*)"test"),    BS_STATUS_OK, "watch tube test");
+    EXPECT_EQ(bs_ignore(handle, (char*)"default"), BS_STATUS_OK, "ignore tube default");
+    EXPECT_EQ(bs_ignore(handle, (char*)"test"),    BS_STATUS_FAIL, "ignore tube test");
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(JOB, PUT) {
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_use(handle, (char*)"test"), BS_STATUS_OK);
-    EXPECT_GT(bs_put(handle, 1, 0, 1, (char*)"hello", 5), 0);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_use(handle, (char*)"test"), BS_STATUS_OK, "use tube test");
+    EXPECT_GT(bs_put(handle, 1, 0, 1, (char*)"hello", 5), 0, "put job");
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(JOB, RESERVE_RELEASE_DELETE) {
     BSJ *job;
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK);
-    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK);
-    EXPECT_EQ(std::string(job->data, job->size), "hello");
-    EXPECT_EQ(bs_release(handle, job->id, 1, 0), BS_STATUS_OK);
-    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK, "watch tube test");
+    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK, "reserve job");
+    EXPECT_EQ(std::string(job->data, job->size), "hello", "match against previously put job");
+    EXPECT_EQ(bs_release(handle, job->id, 1, 0), BS_STATUS_OK, "release job");
+    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK, "delete job");
     bs_free_job(job);
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(JOB, LARGE_CHUNK) {
     BSJ *job;
 
     handle = bs_connect((char*)"127.0.0.1", 11300);
-    EXPECT_GT(handle, 0);
-    EXPECT_EQ(bs_use(handle,   (char*)"test"), BS_STATUS_OK);
-    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK);
-    EXPECT_GT(bs_put(handle, 1, 0, 1, large_message, bytes), 0);
-    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK);
-    EXPECT_EQ(job->size, bytes);
-    EXPECT_EQ(memcmp(job->data, large_message, bytes), 0);
-    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK);
+    EXPECT_GT(handle, 0, "connect");
+    EXPECT_EQ(bs_use(handle,   (char*)"test"), BS_STATUS_OK, "use tube test");
+    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK, "watch tube test");
+    EXPECT_GT(bs_put(handle, 1, 0, 1, large_message, bytes), 0, "put job");
+    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK, "reserve job");
+    EXPECT_EQ(job->size, bytes, "check job size");
+    EXPECT_EQ(memcmp(job->data, large_message, bytes), 0, "check job data");
+    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK, "delete job");
 
     bs_free_job(job);
     bs_disconnect(handle);
+    return 0;
 }
 
 TEST(POLL, SELECT) {
@@ -117,26 +126,38 @@ TEST(POLL, SELECT) {
 
     handle = bs_connect((char*)"127.0.0.1", 11300);
 
-    EXPECT_GT(handle, 0);
+    EXPECT_GT(handle, 0, "connect");
     bs_start_polling(select_poll);
     fcntl(handle, F_SETFL, O_NONBLOCK);
-    EXPECT_EQ(bs_use(handle,   (char*)"test"), BS_STATUS_OK);
-    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK);
-    EXPECT_GT(bs_put(handle, 1, 0, 1, large_message, bytes), 0);
-    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK);
-    EXPECT_EQ(job->size, bytes);
-    EXPECT_EQ(memcmp(job->data, large_message, bytes), 0);
-    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK);
+    EXPECT_EQ(bs_use(handle,   (char*)"test"), BS_STATUS_OK, "use tube test");
+    EXPECT_EQ(bs_watch(handle, (char*)"test"), BS_STATUS_OK, "watch tube");
+    EXPECT_GT(bs_put(handle, 1, 0, 1, large_message, bytes), 0, "put job");
+    EXPECT_EQ(bs_reserve(handle, &job), BS_STATUS_OK, "reserve job");
+    EXPECT_EQ(job->size, bytes, "check job size");
+    EXPECT_EQ(memcmp(job->data, large_message, bytes), 0, "check job data");
+    EXPECT_EQ(bs_delete(handle, job->id), BS_STATUS_OK, "delete job");
 
     bs_free_job(job);
     bs_disconnect(handle);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
-    int rc = 0;
-    testing::InitGoogleTest(&argc, argv);
     setup();
-    rc = RUN_ALL_TESTS();
+
+    fprintf(stderr, "================================================================================\n");
+    fprintf(stderr, "C API\n");
+    fprintf(stderr, "================================================================================\n");
+
+    RUN(CONNECTION, CONNECT);
+    RUN(TUBE, USE);
+    RUN(TUBE, WATCH);
+    RUN(TUBE, IGNORE);
+    RUN(JOB, PUT);
+    RUN(JOB, RESERVE_RELEASE_DELETE);
+    RUN(JOB, LARGE_CHUNK);
+    RUN(POLL, SELECT);
+
     teardown();
-    return rc;
+    return _test_failures;
 }
