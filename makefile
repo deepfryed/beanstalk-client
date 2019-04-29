@@ -27,8 +27,7 @@ ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
 LINKER       = -shared -Wl,-dylib_install_name,$(SHAREDLIB).1
 LNOPTS       = -sf
-endif
-ifeq ($(OS), FreeBSD)
+else ifeq ($(OS), FreeBSD)
 SHAREDLIB    = libbeanstalk.dylib
 LINKER       = -shared -Wl,-soname,$(SHAREDLIB).1
 LNOPTS       = -sf
@@ -41,7 +40,7 @@ endif
 STATICLIB    = libbeanstalk.a
 CFLAGS       = -Wall -Wno-sign-compare -g -I.
 CXXFLAGS     = -std=c++11 $(CFLAGS)
-LDFLAGS      = -L. -lbeanstalk
+LDFLAGS      = -L.
 CC           ?= gcc
 CXX          ?= g++
 
@@ -57,7 +56,7 @@ test/%.o: test/%.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 benchmark: benchmark.cc $(SHAREDLIB)
-	$(CXX) $(CXXFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
+	$(CXX) $(CXXFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lbeanstalk -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
 	$(CC) -o $@ $< $(LDFLAGS) -L. -lbeanstalk

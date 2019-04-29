@@ -266,6 +266,11 @@ BSM* bs_recv_message(int fd, int expect_data) {
     return message;
 }
 
+// OSX doesn't define MSG_NOSIGNAL even though it's in POSIX.
+#ifndef MSG_NOSIGNAL
+  #define MSG_NOSIGNAL 0
+#endif
+
 ssize_t bs_send_message(int fd, char *message, size_t size) {
     // poll until ready to write.
     if (bs_poll) bs_poll(2, fd);

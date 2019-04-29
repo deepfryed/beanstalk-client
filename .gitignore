@@ -13,4 +13,4 @@ benchmark
 siege*
 .cproject
 .project
-
+*.dylib.*
