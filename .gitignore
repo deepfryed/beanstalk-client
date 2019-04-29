@@ -9,6 +9,7 @@ examples/**/*
 test/*
 !test/run-all
 !test/*.cc
+!test/*.h
 benchmark
 siege*
 .cproject
