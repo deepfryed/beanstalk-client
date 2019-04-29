@@ -6,7 +6,7 @@ beanstalk-client (1.4.0) precise; urgency=low
   * Updated tests.
   * Remove googletest dependency.
 
- -- Bharanee Rathna <deepfryed@gmail.com>  Sat, 29 Apr 2019 12:35:00 +1000
+ -- Bharanee Rathna <deepfryed@gmail.com>  Mon, 29 Apr 2019 12:35:00 +1000
 
 beanstalk-client (1.3.0) precise; urgency=low
 
