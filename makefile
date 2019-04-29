@@ -6,17 +6,31 @@ SOURCES3    := $(wildcard examples/cpp/*.cc)
 TESTS       := $(SOURCES1:%.cc=%)
 CEXAMPLES   := $(SOURCES2:%.c=%)
 CPPEXAMPLES := $(SOURCES3:%.cc=%)
-DESTDIR      = /
-PREFIX       = usr
+
+ifeq ($(OS), FreeBSD)
+DESTDIR      =
+PREFIX       = /usr/local
+INCLUDEDIR   = $(PREFIX)/include/
+LIBDIR       = $(PREFIX)/lib/
+PKGCONFIGDIR = $(PREFIX)/libdata/pkgconfig/
+else
+DESTDIR      =
+PREFIX       = /usr
 INCLUDEDIR   = $(PREFIX)/include/
 LIBDIR       = $(PREFIX)/lib/
 PKGCONFIGDIR = $(LIBDIR)/pkgconfig/
+endif
 
 VERSION      = $(shell cat beanstalk.h | grep BS_.*_VERSION | sed 's/^.*VERSION *//' | xargs echo | sed 's/ /./g')
 
 ifeq ($(OS), Darwin)
 SHAREDLIB    = libbeanstalk.dylib
 LINKER       = -shared -Wl,-dylib_install_name,$(SHAREDLIB).1
+LNOPTS       = -sf
+endif
+ifeq ($(OS), FreeBSD)
+SHAREDLIB    = libbeanstalk.dylib
+LINKER       = -shared -Wl,-soname,$(SHAREDLIB).1
 LNOPTS       = -sf
 else
 SHAREDLIB    = libbeanstalk.so
@@ -37,7 +51,7 @@ test: $(TESTS)
 	test/run-all
 
 $(TESTS): test/%:test/%.o $(SHAREDLIB)
-	$(CXX) -o $@ $< $(LDFLAGS) -lgtest -lpthread
+	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk -lgtest -lpthread
 
 test/%.o: test/%.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -46,13 +60,13 @@ benchmark: benchmark.cc $(SHAREDLIB)
 	$(CXX) $(CXXFLAGS) -o benchmark benchmark.cc $(LDFLAGS) -lpthread
 
 $(CEXAMPLES): examples/c/%:examples/c/%.o $(SHAREDLIB)
-	$(CC) -o $@ $< $(LDFLAGS)
+	$(CC) -o $@ $< $(LDFLAGS) -L. -lbeanstalk
 
 examples/c/%.o: examples/c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(CPPEXAMPLES): examples/cpp/%:examples/cpp/%.o $(SHAREDLIB)
-	$(CXX) -o $@ $< $(LDFLAGS)
+	$(CXX) -o $@ $< $(LDFLAGS) -L. -lbeanstalk
 
 examples/cpp/%.o: examples/cpp/%.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -62,7 +76,7 @@ $(STATICLIB): beanstalk.o beanstalkcpp.o
 	ar -cq $@ $^
 
 $(SHAREDLIB): beanstalk.o beanstalkcpp.o
-	$(CXX) $(LINKER) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
+	$(CXX) $(CFLAGS) $(LINKER) $(LDFLAGS) -o $(SHAREDLIB)  beanstalk.o beanstalkcpp.o
 	rm -f $(SHAREDLIB).1
 	ln -s $(SHAREDLIB) $(SHAREDLIB).1
 
@@ -74,11 +88,11 @@ beanstalkcpp.o: beanstalk.cc beanstalk.hpp makefile
 
 install: $(SHAREDLIB) $(STATICLIB)
 	install -d $(DESTDIR)$(INCLUDEDIR)
-	install beanstalk.h $(DESTDIR)$(INCLUDEDIR)
-	install beanstalk.hpp $(DESTDIR)$(INCLUDEDIR)
+	install -m 0644 beanstalk.h $(DESTDIR)$(INCLUDEDIR)
+	install -m 0644 beanstalk.hpp $(DESTDIR)$(INCLUDEDIR)
 
 	install -d $(DESTDIR)$(LIBDIR)
-	install -m 0644 $(SHAREDLIB) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).$(VERSION)
+	install -m 0755 $(SHAREDLIB) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).$(VERSION)
 	ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB).1
 	ln $(LNOPTS) $(SHAREDLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(SHAREDLIB)
 
@@ -87,7 +101,7 @@ install: $(SHAREDLIB) $(STATICLIB)
 	ln $(LNOPTS) $(STATICLIB).$(VERSION) $(DESTDIR)$(LIBDIR)/$(STATICLIB)
 
 	install -d $(DESTDIR)$(PKGCONFIGDIR)
-	install beanstalk-client.pc $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
+	install -m 0644 beanstalk-client.pc $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's/@VERSION@/$(VERSION)/' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's,@prefix@,$(PREFIX),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
 	sed -i -e 's,@libdir@,$(LIBDIR),' $(DESTDIR)$(PKGCONFIGDIR)/libbeanstalk.pc
