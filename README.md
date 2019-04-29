@@ -21,7 +21,7 @@ sudo apt-get install libgtest-dev
 Since the package does not come with a pre-build library, you need to build and install it.
 
 ```
-cd /usr/src/libgtest
+cd /usr/src/gtest
 sudo cmake .
 sudo make
 sudo cp libgtest.a /usr/local/lib

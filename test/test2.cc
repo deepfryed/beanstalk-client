@@ -22,13 +22,13 @@ TEST(Connection, Connect) {
 TEST(Connection, Reconnect) {
     Client client("127.0.0.1", 11300);
     ASSERT_TRUE(client.ping());
-    ASSERT_THROW(client.connect("127.0.0.1", 11300), runtime_error);
+    ASSERT_THROW(client.connect("127.0.0.1", 11300), ConnectException);
     ASSERT_NO_THROW(client.reconnect());
     ASSERT_TRUE(client.ping());
 }
 
 TEST(Connection, Failure) {
-    ASSERT_THROW(Client borked("example.org", 3000, 1.25), runtime_error);
+    ASSERT_THROW(Client borked("example.org", 3000, 1.25), ConnectException);
 }
 
 TEST(JOB, WATCH_USE_IGNORE) {
@@ -49,6 +49,14 @@ TEST(JOB, PUT_PEEK_RESERVE_DELETE) {
     ASSERT_TRUE(client.reserve(job));
     EXPECT_EQ(job.body(), "hello world!");
     ASSERT_TRUE(client.del(job));
+}
+
+TEST(JOB, RESERVE_TIMEOUT) {
+    Job job;
+    Client client("127.0.0.1", 11300);
+    ASSERT_TRUE(client.watch("test_timeout"));
+    ASSERT_TRUE(client.use("test_timeout"));
+    ASSERT_THROW(client.reserve(job, 1), TimeoutException);
 }
 
 TEST(JOB, MULTIPLE_LARGE_MESSAGES) {

@@ -112,13 +112,18 @@ int bs_connect_with_timeout(const char *host, int port, float secs) {
             pfd.fd = fd;
             pfd.events = POLLOUT;
 
-            if (poll(&pfd, 1, (int)(secs*1000)) > 0) {
+            int ret = poll(&pfd, 1, (int)(secs*1000));
+            if (ret > 0) {
                 option_length = sizeof(int);
                 getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)(&option), &option_length);
                 if (option) {
                     close(fd);
                     return BS_STATUS_FAIL;
                 }
+            }
+            else if (ret == 0) {
+                close(fd);
+                return BS_STATUS_TIMED_OUT;
             } else {
                 close(fd);
                 return BS_STATUS_FAIL;
