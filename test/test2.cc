@@ -23,14 +23,14 @@ TEST(CONNECTION, CONNECT) {
 TEST(CONNECTION, RECONNECT) {
     Client client("127.0.0.1", 11300);
     ASSERT_TRUE(client.ping());
-    ASSERT_THROW(client.connect("127.0.0.1", 11300), ConnectException);
+    ASSERT_THROW(client.connect("127.0.0.1", 11300, 2.0), ConnectException);
     ASSERT_NO_THROW(client.reconnect());
     ASSERT_TRUE(client.ping());
     return 0;
 }
 
 TEST(CONNECTION, FAILURE) {
-    ASSERT_THROW(Client borked("example.org", 3000, 1.25), TimeoutException);
+    ASSERT_THROW(Client borked("example.org", 3000, 1.0), TimeoutException);
     return 0;
 }
 

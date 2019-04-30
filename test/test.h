@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cxxabi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -61,7 +62,9 @@ static int _test_failures = 0;
       a; \
     } \
     catch (std::exception const& got) { \
-      snprintf(_test_error, sizeof(_test_error), "  [%s:%d] %s raised exception %s\n", __FILE__, __LINE__, #a, got.what()); \
+      int status; \
+      char *klass = abi::__cxa_demangle(typeid(got).name(), 0, 0, &status); \
+      snprintf(_test_error, sizeof(_test_error), "  [%s:%d] %s raised exception ‘%s’\n", __FILE__, __LINE__, #a, klass); \
       return _test_error; \
     } \
   } while (0)
@@ -76,9 +79,11 @@ static int _test_failures = 0;
       raised = true; \
     } \
     catch (std::exception const& got) { \
-       snprintf(_test_error, sizeof(_test_error), \
-         "  [%s:%d] %s did not raise exception %s but raised ‘%s’\n", __FILE__, __LINE__, #a, #e, got.what()); \
-       return _test_error; \
+      int status; \
+      char *klass = abi::__cxa_demangle(typeid(got).name(), 0, 0, &status); \
+      snprintf(_test_error, sizeof(_test_error), \
+        "  [%s:%d] %s did not raise exception ‘%s’ but raised ‘%s’\n", __FILE__, __LINE__, #a, #e, klass); \
+      return _test_error; \
     } \
     if (!raised) { \
       snprintf(_test_error, sizeof(_test_error), "  [%s:%d] %s did not raise an exception\n", __FILE__, __LINE__, #a); \
