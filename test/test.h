@@ -64,7 +64,9 @@ static int _test_failures = 0;
     catch (std::exception const& got) { \
       int status; \
       char *klass = abi::__cxa_demangle(typeid(got).name(), 0, 0, &status); \
-      snprintf(_test_error, sizeof(_test_error), "  [%s:%d] %s raised exception ‘%s’\n", __FILE__, __LINE__, #a, klass); \
+      snprintf(_test_error, sizeof(_test_error), \
+        "  [%s:%d] %s raised exception ‘%s’\n", __FILE__, __LINE__, #a, klass ? klass : got.what()); \
+      if (klass) free(klass); \
       return _test_error; \
     } \
   } while (0)
@@ -82,7 +84,8 @@ static int _test_failures = 0;
       int status; \
       char *klass = abi::__cxa_demangle(typeid(got).name(), 0, 0, &status); \
       snprintf(_test_error, sizeof(_test_error), \
-        "  [%s:%d] %s did not raise exception ‘%s’ but raised ‘%s’\n", __FILE__, __LINE__, #a, #e, klass); \
+        "  [%s:%d] %s did not raise exception ‘%s’ but raised ‘%s’\n", __FILE__, __LINE__, #a, #e, klass ? klass : got.what()); \
+      if (klass) free(klass); \
       return _test_error; \
     } \
     if (!raised) { \
